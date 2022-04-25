@@ -206,5 +206,11 @@ def main():
     
     print("Final score: {}".format(score(board)))
 
+    while True:
+        event = pygame.event.wait(1)
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            return
+
 if __name__ == "__main__":
     main()
