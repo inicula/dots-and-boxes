@@ -20,26 +20,26 @@ THEMES = [
      (255, 0,   0  ),
      (0  , 0,   255))
 ]
-GRAY = (105, 105, 105)
 BG_COLOR, FG_COLOR, RED, BLUE = THEMES[1]
-PLAYER_COLORS  = [RED, BLUE]
-PLAYER_NAMES   = ["RED", "BLUE"]
+PLAYER_COLORS                 = [RED, BLUE]
+PLAYER_NAMES                  = ["RED", "BLUE"]
+GRAY                          = (105, 105, 105)
 
 # dimensions
-WIDTH = 800
-HEIGHT = 600
-RADIUS = 20
-GAP = 120
-OFFSET_X = 50
-OFFSET_Y = 50
+WIDTH      = 800
+HEIGHT     = 600
+RADIUS     = 20
+GAP        = 120
+OFFSET_X   = 50
+OFFSET_Y   = 50
 RECT_WIDTH = 15
 
 DEFAULT_MAX_DEPTH = 3
-DOWN = 0
-SIDE = 1
-N, M = 7, 7
-gain_vals = [-1, 1]
-discovered_nodes = 0
+DOWN              = 0
+SIDE              = 1
+N, M              = 7, 7
+GAIN_VALS         = [-1, 1]
+discovered_nodes  = 0
 
 def fprint(fmt, *args):
     print(fmt.format(*args))
@@ -105,7 +105,7 @@ def score(board):
     for i in range(N - 1):
         for j in range(M - 1):
             if is_square(board, i, j):
-                res += gain_vals[square_owner(board, i, j)]
+                res += GAIN_VALS[square_owner(board, i, j)]
 
     return res
 
@@ -284,7 +284,7 @@ def minimax(state, heuristic, max_depth):
     _, _, move_number = state
     player_idx = move_number % 2
 
-    if gain_vals[player_idx] > 0:
+    if GAIN_VALS[player_idx] > 0:
         return minimax_impl(state, max_depth, heuristic, True)
     else:
         return minimax_impl(state, max_depth, heuristic, False)
@@ -335,7 +335,7 @@ def alpha_beta(state, heuristic, max_depth):
     _, _, move_number = state
     player_idx = move_number % 2
 
-    if gain_vals[player_idx] > 0:
+    if GAIN_VALS[player_idx] > 0:
         return alpha_beta_impl(state, max_depth, -INF, INF, heuristic, True)
     else:
         return alpha_beta_impl(state, max_depth, -INF, INF, heuristic, False)
