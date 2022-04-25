@@ -50,13 +50,19 @@ def empty_board():
 
     for i in range(N - 1):
             for j in range(M):
-                pos = (OFFSET_X + GAP * j - RECT_WIDTH/2, OFFSET_Y + GAP * i + RADIUS)
-                rectangles[DOWN][i].append([pygame.Rect(pos, (RECT_WIDTH, GAP - 2 * RADIUS)), GRAY])
+                pos = (OFFSET_X + GAP * j - RECT_WIDTH/2,
+                       OFFSET_Y + GAP * i + RADIUS)
+
+                rect = [pygame.Rect(pos, (RECT_WIDTH, GAP - 2 * RADIUS)), GRAY]
+                rectangles[DOWN][i].append(rect)
 
     for i in range(N):
         for j in range(M - 1):
-            pos = (OFFSET_X + GAP * j + RADIUS, OFFSET_Y + GAP * i - RECT_WIDTH/2)
-            rectangles[SIDE][i].append([pygame.Rect(pos, (GAP - 2 * RADIUS, RECT_WIDTH)), GRAY])
+            pos = (OFFSET_X + GAP * j + RADIUS,
+                   OFFSET_Y + GAP * i - RECT_WIDTH/2)
+
+            rect = [pygame.Rect(pos, (GAP - 2 * RADIUS, RECT_WIDTH)), GRAY]
+            rectangles[SIDE][i].append(rect)
 
     return board, rectangles
 
