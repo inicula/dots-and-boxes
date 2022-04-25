@@ -41,6 +41,9 @@ N, M = 7, 7
 gain_vals = [-1, 1]
 discovered_nodes = 0
 
+def fprint(fmt, *args):
+    print(fmt.format(*args))
+
 def empty_board():
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
              [[0 for _ in range(M - 1)] for _ in range(N)])
@@ -454,12 +457,11 @@ def main():
                 new_figures_idx.append(len(figures) - 1)
 
         # Print move information
-        print("MOVE #{}:".format(move_number))
-        print("Thinking time: {:.3f} seconds:".format(duration))
-        print("Discovered nodes: {}".format(1 + discovered_nodes))
-        print("Player {} has made move: {}".format(PLAYER_NAMES[player_idx], (w,i,j)))
-        print("Score:", score(board))
-        print("")
+        fprint("MOVE #{}:", move_number)
+        fprint("Thinking time: {:.3f} seconds:", duration)
+        fprint("Discovered nodes: {}", 1 + discovered_nodes)
+        fprint("Player {} has made move: {}", PLAYER_NAMES[player_idx], (w,i,j))
+        fprint("Score: {}\n", score(board))
 
         # Don't highlight move from previous turn
         if previous_move is not None:
@@ -479,11 +481,11 @@ def main():
     
     # Print info at the end of the game
     fscore = score(board)
-    print("Final score: {}".format(fscore))
+    fprint("Final score: {}", fscore)
     if fscore == 0:
-        print("GAME ENDED IN A DRAW")
+        fprint("GAME ENDED IN A DRAW\n")
     else:
-        print("{} WON!".format(PLAYER_NAMES[fscore > 0]))
+        fprint("{} WON!", PLAYER_NAMES[fscore > 0])
 
     # Wait for manual user exit
     while True:
