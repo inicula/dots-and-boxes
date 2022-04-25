@@ -39,6 +39,7 @@ DOWN = 0
 SIDE = 1
 N, M = 7, 7
 gain_vals = [-1, 1]
+discovered_nodes = 0
 
 def empty_board():
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
@@ -206,6 +207,8 @@ class Node:
         self.board = board
 
     def neighbours(self, move_number):
+        global discovered_nodes
+
         res = []
 
         # neighbours with new down edges
@@ -224,7 +227,10 @@ class Node:
                     new_side[i][j] = move_number
                     res.append(((SIDE, i, j), Node((self.board[DOWN], new_side))))
 
+        # avoid deterministic Computer vs. Computer matches
         random.shuffle(res)
+
+        discovered_nodes += len(res)
 
         return res
 
@@ -387,6 +393,8 @@ def lazy_alpha_beta(state, heuristic, max_depth):
     return alpha_beta(state, heuristic, max_depth)
 
 def main():
+    global discovered_nodes
+
     # inits
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -396,8 +404,8 @@ def main():
 
     # tables for gettings moves and making figures
     wait_for_move = [
-        ComputerPlayer(alpha_beta, heuristic_v1, 3),
-        ComputerPlayer(minimax, heuristic_v1, 3)
+        ComputerPlayer(minimax, heuristic_v1, 3),
+        ComputerPlayer(alpha_beta, heuristic_v1, 3)
     ]
 
     make_player_figure = [
@@ -416,6 +424,9 @@ def main():
     move_number = 1
     while not game_ended(board):
         player_idx = move_number % 2
+
+        # clean up from previous move
+        discovered_nodes = 0
 
         # wait for the player's next move
         start_time = time.time()
@@ -438,7 +449,8 @@ def main():
 
         # Print move information
         print("MOVE #{}:".format(move_number))
-        print("After thinking time: {:.3f} seconds:".format(duration))
+        print("Thinking time: {:.3f} seconds:".format(duration))
+        print("Discovered nodes: {}".format(1 + discovered_nodes))
         print("Player {} has made move: {}".format(PLAYER_NAMES[player_idx], (w,i,j)))
         print("Score:", score(board))
         print("")
