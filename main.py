@@ -1,40 +1,74 @@
+import pygame
+import sys
+import time
 import copy
 from random import randrange
 
+# board variables
+
+# colors
+BG_COLOR      = (255, 255, 255)
+FG_COLOR      = (0,   0,   0  )
+RED           = (255, 0,   0  )
+BLUE          = (0  , 0,   255)
+PLAYER_COLORS = [RED, BLUE]
+
+# dimensions
+WIDTH = 800
+HEIGHT = 600
+RADIUS = 20
+GAP = 120
+OFFSET_X = 50
+OFFSET_Y = 50
+RECT_WIDTH = 10
+
 DOWN = 0
 SIDE = 1
-N, M = 3, 3
+N, M = 5, 5
 has_first_move = True
-diffs = [-1, 1]
+diffs = [1, -1]
 
 def init():
     global diffs
 
     if not has_first_move:
-        diffs = [1, -1]
+        diffs.reverse()
 
 def empty_board():
-    return ([[0 for _ in range(M)] for _ in range(N - 1)],
-            [[0 for _ in range(M - 1)] for _ in range(N)])
+    board = ([[0 for _ in range(M)] for _ in range(N - 1)],
+             [[0 for _ in range(M - 1)] for _ in range(N)])
+
+    rectangles = ([[] for _ in range(N - 1)],
+                  [[] for _ in range(N)])
+
+    for i in range(0, N - 1):
+            for j in range(0, M):
+                pos = (OFFSET_X + GAP * j - RECT_WIDTH/2, OFFSET_Y + GAP * i + RADIUS)
+                rectangles[DOWN][i].append([pygame.Rect(pos, (RECT_WIDTH, GAP - 2 * RADIUS)), BG_COLOR])
+
+    for i in range(0, N):
+        for j in range(0, M - 1):
+            pos = (OFFSET_X + GAP * j + RADIUS, OFFSET_Y + GAP * i - RECT_WIDTH/2)
+            rectangles[SIDE][i].append([pygame.Rect(pos, (GAP - 2*RADIUS, RECT_WIDTH)), BG_COLOR])
+
+    return board, rectangles
 
 def square_edges(board, i, j):
     return [board[DOWN][i][j], board[DOWN][i][j + 1], board[SIDE][i][j], board[SIDE][i + 1][j]]
 
 def is_square(board, i, j):
     e = square_edges(board, i, j)
-    return e[0] and e[1] and e[2] and e[3]
+    return e[0] != 0 and e[1] != 0 and e[2] != 0 and e[3] != 0
 
 def square_owner(board, i, j):
     return max(square_edges(board, i, j)) % 2
 
 def score(board):
-    diff = [-1, 1]
-
     res = 0
     for i in range(0, N - 1):
         for j in range(0, M - 1):
             if is_square(board, i, j):
-                res += diff[square_owner(board, i, j)]
+                res += diffs[square_owner(board, i, j)]
 
     return res
 
@@ -79,7 +113,7 @@ class Node:
 
         return res
 
-def rand_move(board):
+def rand_move(board, _):
     while True:
         i, j = randrange(N), randrange(M)
         if i < N - 1 and board[DOWN][i][j] == 0:
@@ -88,22 +122,89 @@ def rand_move(board):
         if j < M - 1 and board[SIDE][i][j] == 0:
             return SIDE, i, j
 
+def draw(_, rectangles, screen):
+    for i in range(N):
+        for j in range(M):
+            pos = (OFFSET_X + GAP * j, OFFSET_Y + GAP * i)
+            pygame.draw.circle(screen, FG_COLOR, pos, RADIUS)
+
+    for i in range(0, N - 1):
+        for j in range(0, M):
+            rect, color = rectangles[DOWN][i][j]
+            pygame.draw.rect(screen, color, rect)
+
+    for i in range(0, N):
+        for j in range(0, M - 1):
+            rect, color = rectangles[SIDE][i][j]
+            pygame.draw.rect(screen, color, rect)
+
+    pygame.display.update()
+
+def user_move(board, rectangles):
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+
+                for i in range(0, N - 1):
+                    for j in range(0, M):
+                        rect, _ = rectangles[DOWN][i][j]
+
+                        if rect.collidepoint(pos) and board[DOWN][i][j] == 0:
+                            return DOWN, i, j
+
+                for i in range(0, N):
+                    for j in range(0, M - 1):
+                        rect, _ = rectangles[SIDE][i][j]
+
+                        if rect.collidepoint(pos) and board[SIDE][i][j] == 0:
+                            return SIDE, i, j
+
 def main():
     init()
 
-    ask_for_move = [rand_move, rand_move]
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    pygame.display.set_caption("Dots & Boxes")
+    screen.fill(BG_COLOR)
+    pygame.display.update()
 
-    board = empty_board()
-    move = 1
+    ask_for_move = [rand_move, user_move]
+    if not has_first_move:
+        ask_for_move.reverse()
+
+    board, rectangles = empty_board()
+    draw(board, rectangles, screen)
+
+    previous_move = None
+    move_number = 1
     while not game_ended(board):
         print("Drawing board...")
 
-        w, i, j = ask_for_move[move % 2](board)
-        board[w][i][j] = move
+        player_idx = move_number % 2
 
-        move += 1
+        w, i, j = ask_for_move[player_idx](board, rectangles)
+        board[w][i][j] = move_number
+        rectangles[w][i][j][1] = PLAYER_COLORS[player_idx]
+        print("Player {} has made move: {}".format(player_idx, (w,i,j)))
+        print("Score:", score(board))
+        print("")
+
+        if previous_move is not None:
+            pw, pi, pj = previous_move
+            rectangles[pw][pi][pj][1] = FG_COLOR
+
+        draw(board, rectangles, screen)
+        time.sleep(1)
+
+        move_number += 1
+        previous_move = (w, i, j)
     
-    print(score(board))
+    print("Final score: {}".format(score(board)))
 
 if __name__ == "__main__":
     main()
