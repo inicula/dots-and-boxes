@@ -20,9 +20,10 @@ THEMES = [
      (255, 0,   0  ),
      (0  , 0,   255))
 ]
+GRAY = (105, 105, 105)
 BG_COLOR, FG_COLOR, RED, BLUE = THEMES[1]
-PLAYER_COLORS = [RED, BLUE]
-PLAYER_NAMES  = ["RED", "BLUE"]
+PLAYER_COLORS  = [RED, BLUE]
+PLAYER_NAMES   = ["RED", "BLUE"]
 
 # dimensions
 WIDTH = 800
@@ -31,7 +32,7 @@ RADIUS = 20
 GAP = 120
 OFFSET_X = 50
 OFFSET_Y = 50
-RECT_WIDTH = 10
+RECT_WIDTH = 15
 
 DEFAULT_MAX_DEPTH = 3
 DOWN = 0
@@ -49,12 +50,12 @@ def empty_board():
     for i in range(N - 1):
             for j in range(M):
                 pos = (OFFSET_X + GAP * j - RECT_WIDTH/2, OFFSET_Y + GAP * i + RADIUS)
-                rectangles[DOWN][i].append([pygame.Rect(pos, (RECT_WIDTH, GAP - 2 * RADIUS)), BG_COLOR])
+                rectangles[DOWN][i].append([pygame.Rect(pos, (RECT_WIDTH, GAP - 2 * RADIUS)), GRAY])
 
     for i in range(N):
         for j in range(M - 1):
             pos = (OFFSET_X + GAP * j + RADIUS, OFFSET_Y + GAP * i - RECT_WIDTH/2)
-            rectangles[SIDE][i].append([pygame.Rect(pos, (GAP - 2*RADIUS, RECT_WIDTH)), BG_COLOR])
+            rectangles[SIDE][i].append([pygame.Rect(pos, (GAP - 2 * RADIUS, RECT_WIDTH)), GRAY])
 
     return board, rectangles
 
@@ -114,7 +115,55 @@ def game_ended(board):
 
         return True
 
-def draw(_, rectangles, screen):
+def make_x_figure(i, j, color):
+    p1 = (OFFSET_X + GAP * j + RADIUS,
+          OFFSET_Y + GAP * i + RADIUS)
+
+    p2 = (OFFSET_X + GAP * (j + 1) - RADIUS,
+          OFFSET_Y + GAP * (i + 1) - RADIUS)
+
+    p3 = (OFFSET_X + GAP * j + RADIUS,
+          OFFSET_Y + GAP * (i + 1) - RADIUS)
+
+    p4 = (OFFSET_X + GAP * (j + 1) - RADIUS,
+          OFFSET_Y + GAP * i + RADIUS)
+
+    return [(p1, p2, p3, p4), color]
+
+def make_triangle_figure(i, j, color):
+    p1 = (OFFSET_X + GAP * j + RADIUS,
+          OFFSET_Y + GAP * (i + 1) - RADIUS)
+
+    p2 = (OFFSET_X + GAP * (j + 1) - RADIUS,
+          OFFSET_Y + GAP * (i + 1) - RADIUS)
+
+    p3 = (OFFSET_X + GAP * (j + 1) - RADIUS - (GAP - 2 * RADIUS) / 2,
+          OFFSET_Y + GAP * i + RADIUS)
+
+    return [(p1, p2, p3), color]
+
+
+def made_square(board, w, i, j):
+    res = []
+
+    if 0 <= i < N - 1 and 0 <= j < M - 1 and is_square(board, i, j):
+        res.append((i, j))
+
+    if w == DOWN:
+        k, l = i, j - 1
+        if 0 <= k < N - 1 and 0 <= l < M - 1 and is_square(board, k, l):
+            res.append((k, l))
+    else:
+        k, l = i - 1, j
+        if 0 <= k < N - 1 and 0 <= l < M - 1 and is_square(board, k, l):
+            res.append((k, l))
+
+    if len(res) > 0:
+        return res
+
+    return None
+
+def draw(_, rectangles, figures, screen):
     for i in range(N):
         for j in range(M):
             pos = (OFFSET_X + GAP * j, OFFSET_Y + GAP * i)
@@ -129,6 +178,13 @@ def draw(_, rectangles, screen):
         for j in range(M - 1):
             rect, color = rectangles[SIDE][i][j]
             pygame.draw.rect(screen, color, rect)
+
+    for points, color in figures:
+        if len(points) == 4:
+            pygame.draw.line(screen, color, points[0], points[1], 10)
+            pygame.draw.line(screen, color, points[2], points[3], 10)
+        else:
+            pygame.draw.polygon(screen, color, points)
 
     pygame.display.update()
 
@@ -331,47 +387,79 @@ def lazy_alpha_beta(state, heuristic, max_depth):
     return alpha_beta(state, heuristic, max_depth)
 
 def main():
+    # inits
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Dots & Boxes")
     screen.fill(BG_COLOR)
     pygame.display.update()
 
+    # tables for gettings moves and making figures
     wait_for_move = [
         ComputerPlayer(alpha_beta, heuristic_v1, 3),
-        ComputerPlayer(alpha_beta, heuristic_v1, 3),
+        ComputerPlayer(minimax, heuristic_v1, 3)
     ]
 
-    board, rectangles = empty_board()
-    draw(board, rectangles, screen)
+    make_player_figure = [
+        make_triangle_figure,
+        make_x_figure
+    ]
 
+    # make empty board with free rectangles
+    board, rectangles = empty_board()
+    figures = []
+    draw(board, rectangles, figures, screen)
+
+    # start the main loop
+    previous_figure_idx = None
     previous_move = None
     move_number = 1
     while not game_ended(board):
         player_idx = move_number % 2
 
+        # wait for the player's next move
         start_time = time.time()
         (w, i, j), _ = wait_for_move[player_idx]((board, rectangles, move_number))
         duration = time.time() - start_time
 
+        # put the move on the board
         board[w][i][j] = move_number
         rectangles[w][i][j][1] = PLAYER_COLORS[player_idx]
 
+        # check if the new move created squares
+        sq = made_square(board, w, i, j)
+        new_figures_idx = []
+        make_figure = make_player_figure[player_idx]
+        if sq is not None:
+
+            for k, l in sq:
+                figures.append(make_figure(k, l, PLAYER_COLORS[player_idx]))
+                new_figures_idx.append(len(figures) - 1)
+
+        # Print move information
+        print("MOVE #{}:".format(move_number))
         print("After thinking time: {:.3f} seconds:".format(duration))
         print("Player {} has made move: {}".format(PLAYER_NAMES[player_idx], (w,i,j)))
         print("Score:", score(board))
         print("")
 
+        # Don't highlight move from previous turn
         if previous_move is not None:
             pw, pi, pj = previous_move
             rectangles[pw][pi][pj][1] = FG_COLOR
+        if previous_figure_idx is not None:
+            for idx in previous_figure_idx:
+                figures[idx][1] = FG_COLOR
 
-        draw(board, rectangles, screen)
-        # time.sleep(1)
+        # Draw the board with the new move
+        draw(board, rectangles, figures, screen)
 
+        # Prepare for next iteration
         move_number += 1
         previous_move = (w, i, j)
+        previous_figure_idx = new_figures_idx
     
+    # Print info at the end of the game
     fscore = score(board)
     print("Final score: {}".format(fscore))
     if fscore == 0:
@@ -379,6 +467,7 @@ def main():
     else:
         print("{} WON!".format(PLAYER_NAMES[fscore > 0]))
 
+    # Wait for manual user exit
     while True:
         event = pygame.event.wait(1)
         if event.type == pygame.QUIT:
