@@ -30,8 +30,8 @@ WIDTH      = 800
 HEIGHT     = 600
 RADIUS     = 20
 GAP        = 120
-OFFSET_X   = 50
-OFFSET_Y   = 50
+OFFSET_X   = RADIUS
+OFFSET_Y   = RADIUS
 RECT_WIDTH = 15
 
 DEFAULT_MAX_DEPTH = 3
@@ -153,7 +153,8 @@ def make_triangle_figure(i, j, color):
     return [(p1, p2, p3), color]
 
 
-def made_square(board, w, i, j):
+def made_square(board, via):
+    w, i, j = via
     res = []
 
     if 0 <= i < N - 1 and 0 <= j < M - 1 and is_square(board, i, j):
@@ -309,7 +310,7 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
             _, val = minimax_impl((v.board, None, move_number + 1),
                                   current_depth - 1,
                                   heuristic,
-                                  False)
+                                  made_square(v.board, via) is not None)
             if max_val < val:
                 max_val = val
                 move = via
@@ -322,7 +323,7 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
             _, val = minimax_impl((v.board, None, move_number + 1),
                                   current_depth - 1,
                                   heuristic,
-                                  True)
+                                  made_square(v.board, via) is None)
             if min_val > val:
                 min_val = val
                 move = via
@@ -361,7 +362,7 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
                                      alpha,
                                      beta,
                                      heuristic,
-                                     False)
+                                     made_square(v.board, via) is not None)
             if max_val < val:
                 max_val = val
                 move = via
@@ -381,7 +382,7 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
                                      alpha,
                                      beta,
                                      heuristic,
-                                     True)
+                                     made_square(v.board, via) is None)
             if min_val > val:
                 min_val = val
                 move = via
@@ -447,11 +448,10 @@ def main():
         rectangles[w][i][j][1] = PLAYER_COLORS[player_idx]
 
         # check if the new move created squares
-        sq = made_square(board, w, i, j)
+        sq = made_square(board, (w, i, j))
         new_figures_idx = []
         make_figure = make_player_figure[player_idx]
         if sq is not None:
-
             for k, l in sq:
                 figures.append(make_figure(k, l, PLAYER_COLORS[player_idx]))
                 new_figures_idx.append(len(figures) - 1)
@@ -475,7 +475,11 @@ def main():
         draw(board, rectangles, figures, screen)
 
         # Prepare for next iteration
-        move_number += 1
+        if sq is None:
+            move_number += 1
+        else:
+            fprint("MOVE #{}: skipped\n", move_number + 1)
+            move_number += 2
         previous_move = (w, i, j)
         previous_figure_idx = new_figures_idx
     
