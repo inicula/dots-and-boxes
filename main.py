@@ -24,7 +24,7 @@ RECT_WIDTH = 10
 
 DOWN = 0
 SIDE = 1
-N, M = 5, 5
+N, M = 3, 3
 has_first_move = True
 diffs = [1, -1]
 
@@ -142,27 +142,27 @@ def draw(_, rectangles, screen):
 
 def user_move(board, rectangles):
     while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+        event = pygame.event.wait(1)
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            pos = pygame.mouse.get_pos()
 
-                for i in range(0, N - 1):
-                    for j in range(0, M):
-                        rect, _ = rectangles[DOWN][i][j]
+            for i in range(0, N - 1):
+                for j in range(0, M):
+                    rect, _ = rectangles[DOWN][i][j]
 
-                        if rect.collidepoint(pos) and board[DOWN][i][j] == 0:
-                            return DOWN, i, j
+                    if rect.collidepoint(pos) and board[DOWN][i][j] == 0:
+                        return DOWN, i, j
 
-                for i in range(0, N):
-                    for j in range(0, M - 1):
-                        rect, _ = rectangles[SIDE][i][j]
+            for i in range(0, N):
+                for j in range(0, M - 1):
+                    rect, _ = rectangles[SIDE][i][j]
 
-                        if rect.collidepoint(pos) and board[SIDE][i][j] == 0:
-                            return SIDE, i, j
+                    if rect.collidepoint(pos) and board[SIDE][i][j] == 0:
+                        return SIDE, i, j
 
 def main():
     init()
@@ -173,9 +173,9 @@ def main():
     screen.fill(BG_COLOR)
     pygame.display.update()
 
-    ask_for_move = [rand_move, user_move]
+    wait_for_move = [rand_move, rand_move]
     if not has_first_move:
-        ask_for_move.reverse()
+        wait_for_move.reverse()
 
     board, rectangles = empty_board()
     draw(board, rectangles, screen)
@@ -187,7 +187,7 @@ def main():
 
         player_idx = move_number % 2
 
-        w, i, j = ask_for_move[player_idx](board, rectangles)
+        w, i, j = wait_for_move[player_idx](board, rectangles)
         board[w][i][j] = move_number
         rectangles[w][i][j][1] = PLAYER_COLORS[player_idx]
         print("Player {} has made move: {}".format(player_idx, (w,i,j)))
