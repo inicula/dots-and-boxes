@@ -37,7 +37,7 @@ RECT_WIDTH = 15
 DEFAULT_MAX_DEPTH = 3
 DOWN              = 0
 SIDE              = 1
-N, M              = 7, 7
+N, M              = 4, 5
 GAIN_VALS         = [-1, 1]
 discovered_nodes  = 0
 
@@ -175,6 +175,8 @@ def made_square(board, via):
     return None
 
 def draw(_, rectangles, figures, screen):
+    screen.fill(BG_COLOR)
+
     for i in range(N):
         for j in range(M):
             pos = (OFFSET_X + GAP * j, OFFSET_Y + GAP * i)
@@ -307,10 +309,16 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
         max_val = -INF
 
         for via, v in neighbours:
-            _, val = minimax_impl((v.board, None, move_number + 1),
+            next_move_num = move_number + 1
+            next_turn = False
+            if made_square(v.board, via) is not None:
+                next_move_num = move_number + 2
+                next_turn = True
+
+            _, val = minimax_impl((v.board, None, next_move_num),
                                   current_depth - 1,
                                   heuristic,
-                                  made_square(v.board, via) is not None)
+                                  next_turn)
             if max_val < val:
                 max_val = val
                 move = via
@@ -320,10 +328,16 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
         min_val = INF
 
         for via, v in neighbours:
-            _, val = minimax_impl((v.board, None, move_number + 1),
+            next_move_num = move_number + 1
+            next_turn = True
+            if made_square(v.board, via) is not None:
+                next_move_num = move_number + 2
+                next_turn = False
+
+            _, val = minimax_impl((v.board, None, next_move_num),
                                   current_depth - 1,
                                   heuristic,
-                                  made_square(v.board, via) is None)
+                                  next_turn)
             if min_val > val:
                 min_val = val
                 move = via
@@ -355,41 +369,47 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
     move, s = None, None
     if maximizing:
         max_val = -INF
-
         for via, v in neighbours:
-            _, val = alpha_beta_impl((v.board, None, move_number + 1),
+            next_move_num = move_number + 1
+            next_turn = False
+            if made_square(v.board, via) is not None:
+                next_move_num = move_number + 2
+                next_turn = True
+
+            _, val = alpha_beta_impl((v.board, None, next_move_num),
                                      current_depth - 1,
                                      alpha,
                                      beta,
                                      heuristic,
-                                     made_square(v.board, via) is not None)
+                                     next_turn)
             if max_val < val:
                 max_val = val
                 move = via
-
             if max_val >= beta:
                 break
-
             alpha = max(alpha, max_val)
 
         s = max_val
     else:
         min_val = INF
-
         for via, v in neighbours:
-            _, val = alpha_beta_impl((v.board, None, move_number + 1),
+            next_move_num = move_number + 1
+            next_turn = True
+            if made_square(v.board, via) is not None:
+                next_move_num = move_number + 2
+                next_turn = False
+
+            _, val = alpha_beta_impl((v.board, None, next_move_num),
                                      current_depth - 1,
                                      alpha,
                                      beta,
                                      heuristic,
-                                     made_square(v.board, via) is None)
+                                     next_turn)
             if min_val > val:
                 min_val = val
                 move = via
-
             if min_val <= alpha:
                 break
-
             beta = min(beta, min_val)
 
         s = min_val
@@ -409,13 +429,11 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Dots & Boxes")
-    screen.fill(BG_COLOR)
-    pygame.display.update()
 
     # tables for gettings moves and making figures
     wait_for_move = [
-        ComputerPlayer(minimax, heuristic_v1, 3),
-        ComputerPlayer(alpha_beta, heuristic_v1, 3)
+        ComputerPlayer(alpha_beta, heuristic_v1, 6),
+        user_move
     ]
 
     make_player_figure = [
@@ -426,6 +444,9 @@ def main():
     # make empty board with free rectangles
     board, rectangles = empty_board()
     figures = []
+
+    # draw twice (missing desktop environment?)
+    draw(board, rectangles, figures, screen)
     draw(board, rectangles, figures, screen)
 
     # start the main loop
