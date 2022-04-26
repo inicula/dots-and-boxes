@@ -180,7 +180,7 @@ def made_square(board, via):
 
     return None
 
-def draw(_, rectangles, figures, screen):
+def draw(rectangles, figures, screen):
     screen.fill(BG_COLOR)
 
     # draw the circles
@@ -456,8 +456,8 @@ def main():
     figures = []
 
     # draw twice (missing desktop environment?)
-    draw(board, rectangles, figures, screen)
-    draw(board, rectangles, figures, screen)
+    draw(rectangles, figures, screen)
+    draw(rectangles, figures, screen)
 
     # start the main loop
     previous_figure_idx = None
@@ -508,7 +508,7 @@ def main():
                 figures[idx][1] = FG_COLOR
 
         # Draw the board with the new move
-        draw(board, rectangles, figures, screen)
+        draw(rectangles, figures, screen)
 
         # Prepare for next iteration
         if sq is None:
