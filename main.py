@@ -306,9 +306,10 @@ class Player:
         return self.method(board, self.heuristic, self.max_depth)
 
 class Node:
-    def __init__(self, board, current_move=None):
+    def __init__(self, board, current_move=None, has_scored=None):
         self.board = board
         self.current_move = current_move
+        self.has_scored = has_scored
 
     def state(self):
         return (self.board, None, self.current_move)
@@ -338,7 +339,7 @@ class Node:
 
                     res.append((
                         move,
-                        Node(new_board, move_number + increments[made_sq])
+                        Node(new_board, move_number + increments[made_sq], made_sq)
                     ))
 
         # avoid deterministic Computer vs. Computer matches
@@ -411,11 +412,10 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
         max_val = -INF
 
         for via, v in neighbours:
-            next_turn = (made_square(v.board, via) is not None)
             _, val = minimax_impl(v.state(),
                                   current_depth - 1,
                                   heuristic,
-                                  next_turn)
+                                  v.has_scored)
 
             if max_val < val:
                 max_val = val
@@ -426,11 +426,10 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
         min_val = INF
 
         for via, v in neighbours:
-            next_turn = (made_square(v.board, via) is None)
             _, val = minimax_impl(v.state(),
                                   current_depth - 1,
                                   heuristic,
-                                  next_turn)
+                                  not v.has_scored)
 
             if min_val > val:
                 min_val = val
@@ -477,13 +476,12 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
     if maximizing:
         max_val = -INF
         for via, v in neighbours:
-            next_turn = (made_square(v.board, via) is not None)
             _, val = alpha_beta_impl(v.state(),
                                      current_depth - 1,
                                      alpha,
                                      beta,
                                      heuristic,
-                                     next_turn,
+                                     v.has_scored,
                                      sort)
 
             if max_val < val:
@@ -497,13 +495,12 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
     else:
         min_val = INF
         for via, v in neighbours:
-            next_turn = (made_square(v.board, via) is None)
             _, val = alpha_beta_impl(v.state(),
                                      current_depth - 1,
                                      alpha,
                                      beta,
                                      heuristic,
-                                     next_turn,
+                                     not v.has_scored,
                                      sort)
 
             if min_val > val:
