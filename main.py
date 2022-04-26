@@ -101,12 +101,12 @@ def empty_board():
                   [[] for _ in range(N)])
 
     for i in range(N - 1):
-            for j in range(M):
-                pos = (OFFSET_X + GAP * j - RECT_WIDTH/2,
-                       OFFSET_Y + GAP * i + RADIUS)
+        for j in range(M):
+            pos = (OFFSET_X + GAP * j - RECT_WIDTH/2,
+                   OFFSET_Y + GAP * i + RADIUS)
 
-                rect = [pygame.Rect(pos, (RECT_WIDTH, GAP - 2 * RADIUS)), GRAY]
-                rectangles[DOWN][i].append(rect)
+            rect = [pygame.Rect(pos, (RECT_WIDTH, GAP - 2 * RADIUS)), GRAY]
+            rectangles[DOWN][i].append(rect)
 
     for i in range(N):
         for j in range(M - 1):
