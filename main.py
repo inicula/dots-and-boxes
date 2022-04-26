@@ -58,6 +58,7 @@ def fprinterr(fmt, *args):
 
 def print_help():
     fprinterr("Usage: python3 main.py [OPTIONS]\n")
+
     fprinterr("Options:")
     fprinterr("{:<48} {}", "--non-interactive", "run in non-interactive mode (no pygame elements)")
     fprinterr("{:<48} {}", "--wait-between-moves <seconds>", "wait a number of seconds between moves")
@@ -364,6 +365,9 @@ def user_move(state):
                     if rect.collidepoint(pos) and board[SIDE][i][j] == 0:
                         return (SIDE, i, j), None
 
+def is_human(player):
+    return player.method == user_move
+
 def minimax(state, heuristic, max_depth):
     _, _, move_number = state
     idx = move_number % 2
@@ -521,7 +525,7 @@ def main(argv):
     }
 
     # default players
-    wait_for_move = [
+    players = [
         Player(alpha_beta, heuristic_v3, 3),
         Player(user_move)
     ]
@@ -552,7 +556,7 @@ def main(argv):
 
             if argv[i] == "--difficulty":
                 difficulty_setting = True
-                wait_for_move[0].max_depth = difficulty_depth[argv[i + 1]]
+                players[0].max_depth = difficulty_depth[argv[i + 1]]
                 i += 1
 
             if argv[i] == "--p1" or argv[i] == "--p2":
@@ -564,12 +568,12 @@ def main(argv):
 
                 idx = 1 - idx
                 if argv[i + 1] == "human":
-                    wait_for_move[idx] = Player(user_move)
+                    players[idx] = Player(user_move)
                     i += 1
                 else:
-                    wait_for_move[idx] = Player(search_methods[argv[i + 1]],
-                                                heuristics[argv[i + 2]],
-                                                int(argv[i + 3]))
+                    players[idx] = Player(search_methods[argv[i + 1]],
+                                          heuristics[argv[i + 2]],
+                                          int(argv[i + 3]))
                     i += 3
 
             i += 1
@@ -582,7 +586,7 @@ def main(argv):
         exit(1)
 
     if swap_players:
-        wait_for_move.reverse()
+        players.reverse()
 
     # inits
     screen = None
@@ -599,8 +603,8 @@ def main(argv):
 
     # no user_move when non-interactive
     if non_interactive:
-        m1 = wait_for_move[0].method
-        m2 = wait_for_move[1].method
+        m1 = players[0].method
+        m2 = players[1].method
         if m1 == user_move or m2 == user_move:
             fprinterr("error: user_move not defined in non-interactive mode")
             exit(1)
@@ -625,7 +629,7 @@ def main(argv):
 
         # wait for the player's next move
         start_time = time.time()
-        (w, i, j), _ = wait_for_move[player_idx]((board, rectangles, move_number))
+        (w, i, j), _ = players[player_idx]((board, rectangles, move_number))
         duration = time.time() - start_time
 
         # put the move on the board
@@ -644,13 +648,13 @@ def main(argv):
         # Print move information
         fprint("MOVE #{}:", move_number)
         fprint("Thinking time: {:.3f} seconds:", duration)
-        if wait_for_move[player_idx].method != user_move:
+        if not is_human(players[player_idx]):
             fprint("Discovered nodes: {}", 1 + discovered_nodes)
         fprint("Player {} has made move: {}", PLAYER_NAMES[player_idx], (w,i,j))
         fprint("Score: {}", score(board))
-        if wait_for_move[player_idx].heuristic is not None:
+        if players[player_idx].heuristic is not None:
             fprint("Estimated score: {}",
-                   wait_for_move[player_idx].heuristic((board, rectangles, move_number)))
+                   players[player_idx].heuristic((board, rectangles, move_number)))
         fprint("")
 
         # Don't highlight move from previous turn
@@ -673,7 +677,7 @@ def main(argv):
         previous_move = (w, i, j)
         previous_figure_idx = new_figures_idx
 
-        if wait_dur is not None:
+        if (wait_dur is not None) and (not is_human(players[move_number % 2])):
             time.sleep(wait_dur)
     
     # Print info at the end of the game
