@@ -5,10 +5,6 @@ import time
 import copy
 from random import randrange
 
-INF = sys.maxsize
-
-# board variables
-
 # colors
 THEMES = [
     ((255, 255, 255),
@@ -34,11 +30,20 @@ OFFSET_X   = RADIUS
 OFFSET_Y   = RADIUS
 RECT_WIDTH = 15
 
+# search parameters
 DEFAULT_MAX_DEPTH = 3
-DOWN              = 0
-SIDE              = 1
-N, M              = 4, 5
 GAIN_VALS         = [-1, 1]
+
+# enums
+DOWN = 0
+SIDE = 1
+
+# board config
+N = 4
+M = 5
+
+# misc
+INF = sys.maxsize
 discovered_nodes  = 0
 
 def fprint(fmt, *args):
