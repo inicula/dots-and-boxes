@@ -474,8 +474,22 @@ def main(argv):
     global non_interactive
 
     argc = len(argv)
+    wait_dur = None
     if argc >= 2 and argv[1] == "--non-interactive":
         non_interactive = True
+
+    try:
+        for i in range(1, argc):
+            if argv[i] == "non-interactive":
+                non_interactive = True
+
+            if argv[i] == "--wait-between-moves":
+                wait_dur = float(argv[i + 1])
+                i += 1
+    except:
+        fprinterr("Erorr in cli args.")
+        exit(1)
+
 
     # inits
     screen = None
@@ -572,6 +586,9 @@ def main(argv):
             move_number += 2
         previous_move = (w, i, j)
         previous_figure_idx = new_figures_idx
+
+        if wait_dur is not None:
+            time.sleep(wait_dur)
     
     # Print info at the end of the game
     fscore = score(board)
