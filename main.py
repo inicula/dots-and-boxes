@@ -503,16 +503,13 @@ def main(argv):
     argc = len(argv)
     wait_dur = None
     swap_players = False
-    if argc >= 2 and argv[1] == "--non-interactive":
-        non_interactive = True
-
     try:
         manual_player_setting = False
         difficulty_setting = False
 
         i = 1
         while i < argc:
-            if argv[i] == "non-interactive":
+            if argv[i] == "--non-interactive":
                 non_interactive = True
 
             if argv[i] == "--wait-between-moves":
@@ -524,6 +521,7 @@ def main(argv):
 
             if argv[i] == "--difficulty":
                 wait_for_move[0].max_depth = difficulty_depth[argv[i + 1]]
+                i += 1
 
             if argv[i] == "--p1" or argv[i] == "--p2":
                 manual_player_setting = True
