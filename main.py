@@ -210,7 +210,7 @@ def draw(_, rectangles, figures, screen):
 
     pygame.display.update()
 
-class ComputerPlayer:
+class Player:
     def __init__(self, method, heuristic=None, max_depth=None):
         self.method    = method
         self.heuristic = heuristic
@@ -441,8 +441,8 @@ def main():
 
     # tables for gettings moves and making figures
     wait_for_move = [
-        ComputerPlayer(alpha_beta, heuristic_v1, 6),
-        user_move
+        Player(alpha_beta, heuristic_v1, 6),
+        Player(user_move)
     ]
 
     make_player_figure = [
@@ -492,7 +492,11 @@ def main():
         if wait_for_move[player_idx] != user_move:
             fprint("Discovered nodes: {}", 1 + discovered_nodes)
         fprint("Player {} has made move: {}", PLAYER_NAMES[player_idx], (w,i,j))
-        fprint("Score: {}\n", score(board))
+        fprint("Score: {}", score(board))
+        if wait_for_move[player_idx].heuristic is not None:
+            fprint("Estimated score: {}", wait_for_move[player_idx].heuristic(board))
+        fprint("")
+
 
         # Don't highlight move from previous turn
         if previous_move is not None:
