@@ -489,7 +489,8 @@ def main():
         # Print move information
         fprint("MOVE #{}:", move_number)
         fprint("Thinking time: {:.3f} seconds:", duration)
-        fprint("Discovered nodes: {}", 1 + discovered_nodes)
+        if wait_for_move[player_idx] != user_move:
+            fprint("Discovered nodes: {}", 1 + discovered_nodes)
         fprint("Player {} has made move: {}", PLAYER_NAMES[player_idx], (w,i,j))
         fprint("Score: {}\n", score(board))
 
