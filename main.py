@@ -488,6 +488,8 @@ def main(argv):
                 i += 1
     except:
         fprinterr("Erorr in cli args.")
+        fprinterr("Usage: python3 main.py [--non-interactive] "
+                  "[--wait-between-moves <num_seconds>]")
         exit(1)
 
 
