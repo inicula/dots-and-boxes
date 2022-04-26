@@ -83,6 +83,15 @@ def print_help():
     fprinterr("{:<10} {}", "medium", "maximum depth is 3")
     fprinterr("{:<10} {}", "hard", "maximum depth is 5")
 
+    fprinterr("\nExample #1 (start human vs. human game):")
+    fprinterr("python3 main.py --p1 human --p2 human")
+
+    fprinterr("\nExample #2 (start human vs. alpha beta, heuristic 1, max depth 3):")
+    fprinterr("python3 main.py --p1 human --p2 alphabeta v1 3 --wait-between-moves 1")
+
+    fprinterr("\nExample #3 (alpha beta, heuristic 2, max depth 4 vs. minimax, heuristic 3, max depth 3):")
+    fprinterr("python3 main.py --p1 alphabeta v2 4 --p2 minimax v3 3")
+
 def empty_board():
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
              [[0 for _ in range(M - 1)] for _ in range(N)])
