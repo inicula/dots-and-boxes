@@ -479,13 +479,16 @@ def main(argv):
         non_interactive = True
 
     try:
-        for i in range(1, argc):
+        i = 1
+        while i < argc:
             if argv[i] == "non-interactive":
                 non_interactive = True
 
             if argv[i] == "--wait-between-moves":
                 wait_dur = float(argv[i + 1])
                 i += 1
+
+            i += 1
     except:
         fprinterr("Erorr in cli args.")
         fprinterr("Usage: python3 main.py [--non-interactive] "
