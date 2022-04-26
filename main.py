@@ -44,11 +44,15 @@ N = 4
 M = 5
 
 # misc
-INF = sys.maxsize
+INF               = sys.maxsize
 discovered_nodes  = 0
+non_interactive   = False
 
 def fprint(fmt, *args):
     print(fmt.format(*args))
+
+def fprinterr(fmt, *args):
+    print(fmt.format(*args), file=sys.stderr)
 
 def empty_board():
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
@@ -106,6 +110,14 @@ def remaining_moves(board):
 
     return res
 
+def remaining_squares(board):
+    res = 0
+    for i in range(N - 1):
+        for j in range(M - 1):
+            res += (not is_square(board, i, j))
+
+    return res
+
 def score(board):
     res = 0
     for i in range(N - 1):
@@ -115,8 +127,36 @@ def score(board):
 
     return res
 
-def heuristic_v1(board):
-    return score(board)
+def heuristic_v1(state):
+    return score(state[0])
+
+def heuristic_v2(state):
+    board, _, move_number = state
+    player_idx = move_number % 2
+
+    almost_complete = 0
+    for i in range(N - 1):
+        for j in range(M - 1):
+            almost_complete += (edge_sum(board, i, j) == 3)
+
+    partial_score = almost_complete * GAIN_VALS[player_idx]
+    return partial_score + score(board)
+
+def heuristic_v3(state):
+    board, _, move_number = state
+    player_idx = move_number % 2
+
+    s = score(board)
+    rem = remaining_squares(board)
+
+    if GAIN_VALS[player_idx] > 0:
+        if s + rem < 0:
+            return -INF + 1
+    else:
+        if s - rem > 0:
+            return INF - 1
+
+    return heuristic_v2(state)
 
 def game_ended(board):
         for i in range(N - 1):
@@ -181,6 +221,9 @@ def made_square(board, via):
     return None
 
 def draw(rectangles, figures, screen):
+    if non_interactive:
+        return
+
     screen.fill(BG_COLOR)
 
     # draw the circles
@@ -364,11 +407,11 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
     src = Node(board)
 
     if current_depth == 0:
-        return None, heuristic(src.board)
+        return None, heuristic(state)
 
     neighbours = src.neighbours(move_number)
     if len(neighbours) == 0:
-        return None, heuristic(src.board)
+        return None, heuristic(state)
 
     move, s = None, None
     if maximizing:
@@ -426,24 +469,40 @@ def lazy_alpha_beta(state, heuristic, max_depth):
         return rand_move(state)
     return alpha_beta(state, heuristic, max_depth)
 
-def main():
+def main(argv):
     global discovered_nodes
+    global non_interactive
+
+    argc = len(argv)
+    if argc >= 2 and argv[1] == "--non-interactive":
+        non_interactive = True
 
     # inits
-    pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Dots & Boxes")
+    screen = None
+    if not non_interactive:
+        pygame.init()
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("Dots & Boxes")
 
     # tables for gettings moves and making figures
     wait_for_move = [
-        Player(alpha_beta, heuristic_v1, 6),
-        Player(user_move)
+        Player(alpha_beta, heuristic_v3, 2),
+        Player(alpha_beta, heuristic_v2, 2),
     ]
 
     make_player_figure = [
         make_triangle_figure,
         make_x_figure
     ]
+
+    # no user_move when non-interactive
+    if non_interactive:
+        m1 = wait_for_move[0].method
+        m2 = wait_for_move[1].method
+        if m1 == user_move or m2 == user_move:
+            fprinterr("error: user_move not defined in non-interactive mode")
+            exit(1)
+
 
     # make empty board with free rectangles
     board, rectangles = empty_board()
@@ -489,7 +548,8 @@ def main():
         fprint("Player {} has made move: {}", PLAYER_NAMES[player_idx], (w,i,j))
         fprint("Score: {}", score(board))
         if wait_for_move[player_idx].heuristic is not None:
-            fprint("Estimated score: {}", wait_for_move[player_idx].heuristic(board))
+            fprint("Estimated score: {}",
+                   wait_for_move[player_idx].heuristic((board, rectangles, move_number)))
         fprint("")
 
 
@@ -517,16 +577,16 @@ def main():
     fscore = score(board)
     fprint("Final score: {}", fscore)
     if fscore == 0:
-        fprint("GAME ENDED IN A DRAW\n")
+        fprint("GAME ENDED IN A DRAW")
     else:
         fprint("{} WON!", PLAYER_NAMES[fscore > 0])
 
     # Wait for manual user exit
-    while True:
+    while not non_interactive:
         event = pygame.event.wait(1)
         if event.type == pygame.QUIT:
             pygame.quit()
             return
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv)
