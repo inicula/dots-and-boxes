@@ -56,6 +56,17 @@ def fprint(fmt, *args):
 def fprinterr(fmt, *args):
     print(fmt.format(*args), file=sys.stderr)
 
+def print_help():
+    fprinterr("Usage: python3 main.py [OPTIONS]\n")
+    fprinterr("Options:")
+    fprinterr("{:<48} {}", "--non-interactive", "run in non-interactive mode (no pygame elements)")
+    fprinterr("{:<48} {}", "--wait-between-moves <seconds>", "wait a number of seconds between moves")
+    fprinterr("{:<48} {}", "--swap", "swap the two players before starting the game")
+    fprinterr("{:<48} {}", "--difficulty <title>", "choose the game difficulty (maximum search depth)")
+    fprinterr("{:<48} {}", "--p1 <player-type> [<heuristic> <max-depth>]", "create the first player with the given parameters")
+    fprinterr("{:<48} {}", "--p2 <player-type> [<heuristic> <max-depth>]", "create the second player with the given parameters")
+    fprinterr("{:<48} {}", "--help", "print information about usage and options")
+
 def empty_board():
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
              [[0 for _ in range(M - 1)] for _ in range(N)])
@@ -500,7 +511,12 @@ def main(argv):
         Player(user_move)
     ]
 
+    # parse cli args
     argc = len(argv)
+    if argc >= 2 and argv[1] == "--help":
+        print_help()
+        return
+
     wait_dur = None
     swap_players = False
     try:
@@ -520,6 +536,7 @@ def main(argv):
                 swap_players = True
 
             if argv[i] == "--difficulty":
+                difficulty_setting = True
                 wait_for_move[0].max_depth = difficulty_depth[argv[i + 1]]
                 i += 1
 
@@ -546,8 +563,7 @@ def main(argv):
             raise Exception('')
     except:
         fprinterr("Erorr in cli args.")
-        fprinterr("Usage: python3 main.py [--non-interactive] "
-                  "[--wait-between-moves <num_seconds>]")
+        print_help()
         exit(1)
 
     if swap_players:
