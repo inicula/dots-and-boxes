@@ -487,7 +487,7 @@ def main(argv):
     # tables for gettings moves and making figures
     wait_for_move = [
         Player(alpha_beta, heuristic_v3, 2),
-        Player(alpha_beta, heuristic_v2, 2),
+        Player(alpha_beta, heuristic_v2, 2)
     ]
 
     make_player_figure = [
