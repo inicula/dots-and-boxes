@@ -497,7 +497,6 @@ def main(argv):
                   "[--wait-between-moves <num_seconds>]")
         exit(1)
 
-
     # inits
     screen = None
     if not non_interactive:
@@ -505,7 +504,7 @@ def main(argv):
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Dots & Boxes")
 
-    # tables for gettings moves and making figures
+    # tables for getting player moves and making figures
     wait_for_move = [
         Player(alpha_beta, heuristic_v3, 2),
         Player(alpha_beta, heuristic_v2, 2)
@@ -523,7 +522,6 @@ def main(argv):
         if m1 == user_move or m2 == user_move:
             fprinterr("error: user_move not defined in non-interactive mode")
             exit(1)
-
 
     # make empty board with free rectangles
     board, rectangles = empty_board()
