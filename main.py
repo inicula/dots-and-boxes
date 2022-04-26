@@ -2,7 +2,6 @@ import sys
 import random
 import time
 from copy import deepcopy
-from random import randrange
 from os import environ
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = '1'
 import pygame
@@ -135,19 +134,6 @@ def is_square(board, i, j):
 
 def square_owner(board, i, j):
     return max(square_edges(board, i, j)) % 2
-
-def remaining_moves(board):
-    res = 0
-
-    for i in range(N - 1):
-        for j in range(M):
-            res += (board[DOWN][i][j] == 0)
-
-    for i in range(N):
-        for j in range(M - 1):
-            res += (board[SIDE][i][j] == 0)
-
-    return res
 
 def remaining_squares(board):
     res = 0
@@ -348,17 +334,6 @@ class Node:
         discovered_nodes += len(res)
         return res
 
-def rand_move(state):
-    board, _, _ = state
-
-    while True:
-        i, j = randrange(N), randrange(M)
-        if i < N - 1 and board[DOWN][i][j] == 0:
-            return (DOWN, i, j), None
-
-        if j < M - 1 and board[SIDE][i][j] == 0:
-            return (SIDE, i, j), None
-
 def user_move(state):
     board, rectangles, _ = state
 
@@ -513,12 +488,6 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
         s = min_val
 
     return move, s
-
-def lazy_alpha_beta(state, heuristic, max_depth):
-    board, _, _ = state
-    if remaining_moves(board) > 2 * max_depth:
-        return rand_move(state)
-    return alpha_beta(state, heuristic, max_depth)
 
 def main(argv):
     global discovered_nodes
