@@ -589,7 +589,7 @@ def main(argv):
             raise Exception('')
     except:
         fprinterr("Erorr in cli args.")
-        print_help()
+        fprinterr("Run with flag '--help' for usage details.")
         exit(1)
 
     if swap_players:
