@@ -319,37 +319,27 @@ class Node:
         res = []
 
         increments = [1, 2]
-        # neighbours with new down edges
-        for i in range(N - 1):
-            for j in range(M):
-                if self.board[DOWN][i][j] != 0:
-                    continue
+        # neighbours with new down/side edges
+        for way in [DOWN, SIDE]:
+            for i in range(N - (not way)):
+                for j in range(M - way):
+                    if self.board[way][i][j] != 0:
+                        continue
 
-                new_board = (copy.deepcopy(self.board[DOWN]), self.board[SIDE])
-                move = (DOWN, i, j)
-                new_board[DOWN][i][j] = move_number
-                made_sq = (made_square(new_board, move) is not None)
+                    new_board = None
+                    if way == SIDE:
+                        new_board = (self.board[DOWN], copy.deepcopy(self.board[SIDE]))
+                    else:
+                        new_board = (copy.deepcopy(self.board[DOWN]), self.board[SIDE])
 
-                res.append((
-                    move,
-                    Node(new_board, move_number + increments[made_sq])
-                ))
+                    move = (way, i, j)
+                    new_board[way][i][j] = move_number
+                    made_sq = (made_square(new_board, move) is not None)
 
-        # neighbours with new side edges
-        for i in range(N):
-            for j in range(M - 1):
-                if self.board[SIDE][i][j] != 0:
-                    continue
-
-                new_board = (self.board[DOWN], copy.deepcopy(self.board[SIDE]))
-                move = (SIDE, i, j)
-                new_board[SIDE][i][j] = move_number
-                made_sq = (made_square(new_board, move) is not None)
-
-                res.append((
-                    move,
-                    Node(new_board, move_number + increments[made_sq])
-                ))
+                    res.append((
+                        move,
+                        Node(new_board, move_number + increments[made_sq])
+                    ))
 
         # avoid deterministic Computer vs. Computer matches
         random.shuffle(res)
