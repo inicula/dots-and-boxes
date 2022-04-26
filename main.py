@@ -1,9 +1,11 @@
-import pygame
 import sys
 import random
 import time
 import copy
 from random import randrange
+from os import environ
+environ["PYGAME_HIDE_SUPPORT_PROMPT"] = '1'
+import pygame
 
 # colors
 THEMES = [
