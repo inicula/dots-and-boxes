@@ -57,40 +57,41 @@ def fprinterr(fmt, *args):
     print(fmt.format(*args), file=sys.stderr)
 
 def print_help():
-    fprinterr("Usage: python3 main.py [OPTIONS]\n")
+    fprint("Usage: python3 main.py [OPTIONS]\n")
 
-    fprinterr("Options:")
-    fprinterr("{:<48} {}", "--non-interactive", "run in non-interactive mode (no pygame elements)")
-    fprinterr("{:<48} {}", "--wait-between-moves <seconds>", "wait a number of seconds between moves")
-    fprinterr("{:<48} {}", "--swap", "swap the two players before starting the game")
-    fprinterr("{:<48} {}", "--difficulty <type>", "choose the game difficulty (maximum search depth)")
-    fprinterr("{:<48} {}", "--p1 <player-type> [<heuristic> <max-depth>]", "create the first player with the given parameters")
-    fprinterr("{:<48} {}", "--p2 <player-type> [<heuristic> <max-depth>]", "create the second player with the given parameters")
-    fprinterr("{:<48} {}", "--help", "print information about usage and options")
+    fprint("Options:")
+    fprint("{:<48} {}", "--non-interactive", "run in non-interactive mode (no pygame elements)")
+    fprint("{:<48} {}", "--wait-between-moves <seconds>", "wait a number of seconds between moves")
+    fprint("{:<48} {}", "--swap", "swap the two players before starting the game")
+    fprint("{:<48} {}", "--difficulty <type>", "choose the game difficulty (maximum search depth)")
+    fprint("{:<48} {}", "--p1 <player-type> [<heuristic> <max-depth>]", "create the first player with the given parameters")
+    fprint("{:<48} {}", "--p2 <player-type> [<heuristic> <max-depth>]", "create the second player with the given parameters")
+    fprint("{:<48} {}", "--help", "print information about usage and options")
 
-    fprinterr("\nPlayer types:")
-    fprinterr("{:<13} {}", "human", "take input from the user")
-    fprinterr("{:<13} {}", "alphabeta", "use the computer and search with alpha beta pruning")
-    fprinterr("{:<13} {}", "minimax", "use the computer and search with minimax")
+    fprint("\nPlayer types:")
+    fprint("{:<20} {}", "human", "take input from the user")
+    fprint("{:<20} {}", "alphabeta", "search with alpha beta pruning")
+    fprint("{:<20} {}", "alphabeta_sorted", "sort the nodes according to the heuristic before alpha beta pruning")
+    fprint("{:<20} {}", "minimax", "search with minimax")
 
-    fprinterr("\nHeuristics:")
-    fprinterr("{:<6} {}", "v1", "same as the current score on the board")
-    fprinterr("{:<6} {}", "v2", "add the number of almost-complete squares to the player's score")
-    fprinterr("{:<6} {}", "v3", "-inf/+inf if the player can't win with all of the remainig squares, otherwise same as v2")
+    fprint("\nHeuristics:")
+    fprint("{:<6} {}", "v1", "same as the current score on the board")
+    fprint("{:<6} {}", "v2", "add the number of almost-complete squares to the player's score")
+    fprint("{:<6} {}", "v3", "-inf/+inf if the player can't win with all of the remainig squares, otherwise same as v2")
 
-    fprinterr("\nDifficulties:")
-    fprinterr("{:<10} {}", "easy", "maximum depth is 2")
-    fprinterr("{:<10} {}", "medium", "maximum depth is 3")
-    fprinterr("{:<10} {}", "hard", "maximum depth is 5")
+    fprint("\nDifficulties:")
+    fprint("{:<10} {}", "easy", "maximum depth is 2")
+    fprint("{:<10} {}", "medium", "maximum depth is 3")
+    fprint("{:<10} {}", "hard", "maximum depth is 5")
 
-    fprinterr("\nExample #1 (start human vs. human game):")
-    fprinterr("python3 main.py --p1 human --p2 human")
+    fprint("\nExample #1 (start human vs. human game):")
+    fprint("python3 main.py --p1 human --p2 human")
 
-    fprinterr("\nExample #2 (start human vs. alpha beta, heuristic 1, max depth 3):")
-    fprinterr("python3 main.py --p1 human --p2 alphabeta v1 3 --wait-between-moves 1")
+    fprint("\nExample #2 (start human vs. alpha beta, heuristic 1, max depth 3):")
+    fprint("python3 main.py --p1 human --p2 alphabeta v1 3 --wait-between-moves 1")
 
-    fprinterr("\nExample #3 (alpha beta, heuristic 2, max depth 4 vs. minimax, heuristic 3, max depth 3):")
-    fprinterr("python3 main.py --p1 alphabeta v2 4 --p2 minimax v3 3")
+    fprint("\nExample #3 (alpha beta, heuristic 2, max depth 4 vs. minimax, heuristic 3, max depth 3):")
+    fprint("python3 main.py --p1 alphabeta v2 4 --p2 minimax v3 3")
 
 def empty_board():
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
@@ -305,8 +306,9 @@ class Player:
         return self.method(board, self.heuristic, self.max_depth)
 
 class Node:
-    def __init__(self, board):
+    def __init__(self, board, current_move=None):
         self.board = board
+        self.current_move = current_move
 
     def neighbours(self, move_number):
         global discovered_nodes
@@ -319,7 +321,12 @@ class Node:
                 if self.board[DOWN][i][j] == 0:
                     new_down = copy.deepcopy(self.board[DOWN])
                     new_down[i][j] = move_number
-                    res.append(((DOWN, i, j), Node((new_down, self.board[SIDE]))))
+                    if made_square((new_down, self.board[SIDE]), (DOWN, i, j)) is not None:
+                        res.append(((DOWN, i, j), Node((new_down, self.board[SIDE]),
+                                                       move_number + 2)))
+                    else:
+                        res.append(((DOWN, i, j), Node((new_down, self.board[SIDE]),
+                                                       move_number + 1)))
 
         # neighbours with new side edges
         for i in range(N):
@@ -327,7 +334,12 @@ class Node:
                 if self.board[SIDE][i][j] == 0:
                     new_side = copy.deepcopy(self.board[SIDE])
                     new_side[i][j] = move_number
-                    res.append(((SIDE, i, j), Node((self.board[DOWN], new_side))))
+                    if made_square((self.board[DOWN], new_side), (SIDE, i, j)) is not None:
+                        res.append(((SIDE, i, j), Node((self.board[DOWN], new_side),
+                                                       move_number + 2)))
+                    else:
+                        res.append(((SIDE, i, j), Node((self.board[DOWN], new_side),
+                                                       move_number + 1)))
 
         # avoid deterministic Computer vs. Computer matches
         random.shuffle(res)
@@ -439,9 +451,15 @@ def alpha_beta(state, heuristic, max_depth):
     _, _, move_number = state
     idx = move_number % 2
 
-    return alpha_beta_impl(state, max_depth, -INF, INF, heuristic, GAIN_VALS[idx] > 0)
+    return alpha_beta_impl(state, max_depth, -INF, INF, heuristic, GAIN_VALS[idx] > 0, False)
 
-def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=True):
+def alpha_beta_sorted(state, heuristic, max_depth):
+    _, _, move_number = state
+    idx = move_number % 2
+
+    return alpha_beta_impl(state, max_depth, -INF, INF, heuristic, GAIN_VALS[idx] > 0, True)
+
+def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=True, sort=False):
     board, _, move_number = state
     src = Node(board)
 
@@ -451,6 +469,16 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
     neighbours = src.neighbours(move_number)
     if len(neighbours) == 0:
         return None, heuristic(state)
+
+    if sort and maximizing:
+        neighbours = sorted(neighbours,
+                            reverse=True,
+                            key=lambda node:
+                                    heuristic((node[1].board, None, node[1].current_move)))
+    elif sort:
+        neighbours = sorted(neighbours,
+                            key=lambda node:
+                                    heuristic((node[1].board, None, node[1].current_move)))
 
     move, s = None, None
     if maximizing:
@@ -467,7 +495,8 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
                                      alpha,
                                      beta,
                                      heuristic,
-                                     next_turn)
+                                     next_turn,
+                                     sort)
             if max_val < val:
                 max_val = val
                 move = via
@@ -490,7 +519,8 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
                                      alpha,
                                      beta,
                                      heuristic,
-                                     next_turn)
+                                     next_turn,
+                                     sort)
             if min_val > val:
                 min_val = val
                 move = via
@@ -514,9 +544,10 @@ def main(argv):
 
     # tables for move methods and heuristics
     search_methods = {
-        "alphabeta"  : alpha_beta,
-        "minimax"    : minimax,
-        "human"      : user_move
+        "alphabeta"        : alpha_beta,
+        "alphabeta_sorted" : alpha_beta_sorted,
+        "minimax"          : minimax,
+        "human"            : user_move
     }
 
     heuristics = {
