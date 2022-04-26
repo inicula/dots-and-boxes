@@ -1,7 +1,7 @@
 import sys
 import random
 import time
-import copy
+from copy import deepcopy
 from random import randrange
 from os import environ
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = '1'
@@ -328,9 +328,9 @@ class Node:
 
                     new_board = None
                     if way == SIDE:
-                        new_board = (self.board[DOWN], copy.deepcopy(self.board[SIDE]))
+                        new_board = (self.board[DOWN], deepcopy(self.board[SIDE]))
                     else:
-                        new_board = (copy.deepcopy(self.board[DOWN]), self.board[SIDE])
+                        new_board = (deepcopy(self.board[DOWN]), self.board[SIDE])
 
                     move = (way, i, j)
                     new_board[way][i][j] = move_number
