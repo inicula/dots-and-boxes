@@ -62,10 +62,25 @@ def print_help():
     fprinterr("{:<48} {}", "--non-interactive", "run in non-interactive mode (no pygame elements)")
     fprinterr("{:<48} {}", "--wait-between-moves <seconds>", "wait a number of seconds between moves")
     fprinterr("{:<48} {}", "--swap", "swap the two players before starting the game")
-    fprinterr("{:<48} {}", "--difficulty <title>", "choose the game difficulty (maximum search depth)")
+    fprinterr("{:<48} {}", "--difficulty <type>", "choose the game difficulty (maximum search depth)")
     fprinterr("{:<48} {}", "--p1 <player-type> [<heuristic> <max-depth>]", "create the first player with the given parameters")
     fprinterr("{:<48} {}", "--p2 <player-type> [<heuristic> <max-depth>]", "create the second player with the given parameters")
     fprinterr("{:<48} {}", "--help", "print information about usage and options")
+
+    fprinterr("\nPlayer types:")
+    fprinterr("{:<13} {}", "human", "take input from the user")
+    fprinterr("{:<13} {}", "alphabeta", "use the computer and search with alpha beta pruning")
+    fprinterr("{:<13} {}", "minimax", "use the computer and search with minimax")
+
+    fprinterr("\nHeuristics:")
+    fprinterr("{:<6} {}", "v1", "same as the current score on the board")
+    fprinterr("{:<6} {}", "v2", "add the number of almost-complete squares to the player's score")
+    fprinterr("{:<6} {}", "v3", "-inf/+inf if the player can't win with all of the remainig squares, otherwise same as v2")
+
+    fprinterr("\nDifficulties:")
+    fprinterr("{:<10} {}", "easy", "maximum depth is 2")
+    fprinterr("{:<10} {}", "medium", "maximum depth is 3")
+    fprinterr("{:<10} {}", "hard", "maximum depth is 5")
 
 def empty_board():
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
