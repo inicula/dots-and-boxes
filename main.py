@@ -350,11 +350,11 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
     src = Node(board)
 
     if current_depth == 0:
-        return None, heuristic(src.board)
+        return None, heuristic(state)
 
     neighbours = src.neighbours(move_number)
     if len(neighbours) == 0:
-        return None, heuristic(src.board)
+        return None, heuristic(state)
 
     move, s = None, None
     if maximizing:
@@ -475,12 +475,41 @@ def main(argv):
     global discovered_nodes
     global non_interactive
 
+    # tables for move methods and heuristics
+    search_methods = {
+        "alphabeta"  : alpha_beta,
+        "minimax"    : minimax,
+        "human"      : user_move
+    }
+
+    heuristics = {
+        "v1" : heuristic_v1,
+        "v2" : heuristic_v2,
+        "v3" : heuristic_v3,
+    }
+
+    difficulty_depth = {
+        "easy"   : 2,
+        "medium" : 3,
+        "hard"   : 5
+    }
+
+    # default players
+    wait_for_move = [
+        Player(alpha_beta, heuristic_v3, 3),
+        Player(user_move)
+    ]
+
     argc = len(argv)
     wait_dur = None
+    swap_players = False
     if argc >= 2 and argv[1] == "--non-interactive":
         non_interactive = True
 
     try:
+        manual_player_setting = False
+        difficulty_setting = False
+
         i = 1
         while i < argc:
             if argv[i] == "non-interactive":
@@ -490,12 +519,41 @@ def main(argv):
                 wait_dur = float(argv[i + 1])
                 i += 1
 
+            if argv[i] == "--swap":
+                swap_players = True
+
+            if argv[i] == "--difficulty":
+                wait_for_move[0].max_depth = difficulty_depth[argv[i + 1]]
+
+            if argv[i] == "--p1" or argv[i] == "--p2":
+                manual_player_setting = True
+
+                idx = int(argv[i][3]) - 1
+                if not (0 <= idx <= 1):
+                    raise Exception('')
+
+                idx = 1 - idx
+                if argv[i + 1] == "human":
+                    wait_for_move[idx] = Player(user_move)
+                    i += 1
+                else:
+                    wait_for_move[idx] = Player(search_methods[argv[i + 1]],
+                                                heuristics[argv[i + 2]],
+                                                int(argv[i + 3]))
+                    i += 3
+
             i += 1
+
+        if manual_player_setting and difficulty_setting:
+            raise Exception('')
     except:
         fprinterr("Erorr in cli args.")
         fprinterr("Usage: python3 main.py [--non-interactive] "
                   "[--wait-between-moves <num_seconds>]")
         exit(1)
+
+    if swap_players:
+        wait_for_move.reverse()
 
     # inits
     screen = None
@@ -504,12 +562,7 @@ def main(argv):
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Dots & Boxes")
 
-    # tables for getting player moves and making figures
-    wait_for_move = [
-        Player(alpha_beta, heuristic_v3, 2),
-        Player(alpha_beta, heuristic_v2, 2)
-    ]
-
+    # table for making player figures
     make_player_figure = [
         make_triangle_figure,
         make_x_figure
