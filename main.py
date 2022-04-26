@@ -10,16 +10,17 @@ THEMES = [
     ((255, 255, 255),
      (0,   0,   0  ),
      (255, 0,   0  ),
-     (0  , 0,   255)),
+     (0,   0,   255),
+     (227, 227, 227)),
     ((0,   0,   0  ),
      (255, 255, 255),
      (255, 0,   0  ),
-     (0  , 0,   255))
+     (0,   0,   255),
+     (64,  64,  64 ))
 ]
-BG_COLOR, FG_COLOR, RED, BLUE = THEMES[1]
-PLAYER_COLORS                 = [RED, BLUE]
-PLAYER_NAMES                  = ["RED", "BLUE"]
-GRAY                          = (105, 105, 105)
+BG_COLOR, FG_COLOR, RED, BLUE, GRAY = THEMES[0]
+PLAYER_COLORS = [RED, BLUE]
+PLAYER_NAMES  = ["RED", "BLUE"]
 
 # dimensions
 WIDTH      = 800
@@ -489,7 +490,7 @@ def main():
         # Print move information
         fprint("MOVE #{}:", move_number)
         fprint("Thinking time: {:.3f} seconds:", duration)
-        if wait_for_move[player_idx] != user_move:
+        if wait_for_move[player_idx].method != user_move:
             fprint("Discovered nodes: {}", 1 + discovered_nodes)
         fprint("Player {} has made move: {}", PLAYER_NAMES[player_idx], (w,i,j))
         fprint("Score: {}", score(board))
