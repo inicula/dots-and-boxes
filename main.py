@@ -295,12 +295,9 @@ def user_move(state):
 
 def minimax(state, heuristic, max_depth):
     _, _, move_number = state
-    player_idx = move_number % 2
+    idx = move_number % 2
 
-    if GAIN_VALS[player_idx] > 0:
-        return minimax_impl(state, max_depth, heuristic, True)
-    else:
-        return minimax_impl(state, max_depth, heuristic, False)
+    return minimax_impl(state, max_depth, heuristic, GAIN_VALS[idx] > 0)
 
 
 def minimax_impl(state, current_depth, heuristic, maximizing=True):
@@ -358,12 +355,9 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
 
 def alpha_beta(state, heuristic, max_depth):
     _, _, move_number = state
-    player_idx = move_number % 2
+    idx = move_number % 2
 
-    if GAIN_VALS[player_idx] > 0:
-        return alpha_beta_impl(state, max_depth, -INF, INF, heuristic, True)
-    else:
-        return alpha_beta_impl(state, max_depth, -INF, INF, heuristic, False)
+    return alpha_beta_impl(state, max_depth, -INF, INF, heuristic, GAIN_VALS[idx] > 0)
 
 def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=True):
     board, _, move_number = state
