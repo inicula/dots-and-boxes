@@ -177,21 +177,25 @@ def made_square(board, via):
 def draw(_, rectangles, figures, screen):
     screen.fill(BG_COLOR)
 
+    # draw the circles
     for i in range(N):
         for j in range(M):
             pos = (OFFSET_X + GAP * j, OFFSET_Y + GAP * i)
             pygame.draw.circle(screen, FG_COLOR, pos, RADIUS)
 
+    # draw the down-edges
     for i in range(N - 1):
         for j in range(M):
             rect, color = rectangles[DOWN][i][j]
             pygame.draw.rect(screen, color, rect)
 
+    # draw the side-edges
     for i in range(N):
         for j in range(M - 1):
             rect, color = rectangles[SIDE][i][j]
             pygame.draw.rect(screen, color, rect)
 
+    # draw the players' figures
     for points, color in figures:
         if len(points) == 4:
             pygame.draw.line(screen, color, points[0], points[1], 10)
