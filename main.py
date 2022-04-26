@@ -310,42 +310,51 @@ class Node:
         self.board = board
         self.current_move = current_move
 
+    def state(self):
+        return (self.board, None, self.current_move)
+
     def neighbours(self, move_number):
         global discovered_nodes
 
         res = []
 
+        increments = [1, 2]
         # neighbours with new down edges
         for i in range(N - 1):
             for j in range(M):
-                if self.board[DOWN][i][j] == 0:
-                    new_down = copy.deepcopy(self.board[DOWN])
-                    new_down[i][j] = move_number
-                    if made_square((new_down, self.board[SIDE]), (DOWN, i, j)) is not None:
-                        res.append(((DOWN, i, j), Node((new_down, self.board[SIDE]),
-                                                       move_number + 2)))
-                    else:
-                        res.append(((DOWN, i, j), Node((new_down, self.board[SIDE]),
-                                                       move_number + 1)))
+                if self.board[DOWN][i][j] != 0:
+                    continue
+
+                new_board = (copy.deepcopy(self.board[DOWN]), self.board[SIDE])
+                move = (DOWN, i, j)
+                new_board[DOWN][i][j] = move_number
+                made_sq = (made_square(new_board, move) is not None)
+
+                res.append((
+                    move,
+                    Node(new_board, move_number + increments[made_sq])
+                ))
 
         # neighbours with new side edges
         for i in range(N):
             for j in range(M - 1):
-                if self.board[SIDE][i][j] == 0:
-                    new_side = copy.deepcopy(self.board[SIDE])
-                    new_side[i][j] = move_number
-                    if made_square((self.board[DOWN], new_side), (SIDE, i, j)) is not None:
-                        res.append(((SIDE, i, j), Node((self.board[DOWN], new_side),
-                                                       move_number + 2)))
-                    else:
-                        res.append(((SIDE, i, j), Node((self.board[DOWN], new_side),
-                                                       move_number + 1)))
+                if self.board[SIDE][i][j] != 0:
+                    continue
+
+                new_board = (self.board[DOWN], copy.deepcopy(self.board[SIDE]))
+                move = (SIDE, i, j)
+                new_board[SIDE][i][j] = move_number
+                made_sq = (made_square(new_board, move) is not None)
+
+                res.append((
+                    move,
+                    Node(new_board, move_number + increments[made_sq])
+                ))
 
         # avoid deterministic Computer vs. Computer matches
         random.shuffle(res)
 
         discovered_nodes += len(res)
-
         return res
 
 def rand_move(state):
@@ -373,17 +382,19 @@ def user_move(state):
 
             for i in range(N - 1):
                 for j in range(M):
+                    move = (DOWN, i, j)
                     rect, _ = rectangles[DOWN][i][j]
 
                     if rect.collidepoint(pos) and board[DOWN][i][j] == 0:
-                        return (DOWN, i, j), None
+                        return move, None
 
             for i in range(N):
                 for j in range(M - 1):
+                    move = (SIDE, i, j)
                     rect, _ = rectangles[SIDE][i][j]
 
                     if rect.collidepoint(pos) and board[SIDE][i][j] == 0:
-                        return (SIDE, i, j), None
+                        return move, None
 
 def is_human(player):
     return player.method == user_move
@@ -410,16 +421,12 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
         max_val = -INF
 
         for via, v in neighbours:
-            next_move_num = move_number + 1
-            next_turn = False
-            if made_square(v.board, via) is not None:
-                next_move_num = move_number + 2
-                next_turn = True
-
-            _, val = minimax_impl((v.board, None, next_move_num),
+            next_turn = (made_square(v.board, via) is not None)
+            _, val = minimax_impl(v.state(),
                                   current_depth - 1,
                                   heuristic,
                                   next_turn)
+
             if max_val < val:
                 max_val = val
                 move = via
@@ -429,16 +436,12 @@ def minimax_impl(state, current_depth, heuristic, maximizing=True):
         min_val = INF
 
         for via, v in neighbours:
-            next_move_num = move_number + 1
-            next_turn = True
-            if made_square(v.board, via) is not None:
-                next_move_num = move_number + 2
-                next_turn = False
-
-            _, val = minimax_impl((v.board, None, next_move_num),
+            next_turn = (made_square(v.board, via) is None)
+            _, val = minimax_impl(v.state(),
                                   current_depth - 1,
                                   heuristic,
                                   next_turn)
+
             if min_val > val:
                 min_val = val
                 move = via
@@ -484,19 +487,15 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
     if maximizing:
         max_val = -INF
         for via, v in neighbours:
-            next_move_num = move_number + 1
-            next_turn = False
-            if made_square(v.board, via) is not None:
-                next_move_num = move_number + 2
-                next_turn = True
-
-            _, val = alpha_beta_impl((v.board, None, next_move_num),
+            next_turn = (made_square(v.board, via) is not None)
+            _, val = alpha_beta_impl(v.state(),
                                      current_depth - 1,
                                      alpha,
                                      beta,
                                      heuristic,
                                      next_turn,
                                      sort)
+
             if max_val < val:
                 max_val = val
                 move = via
@@ -508,19 +507,15 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
     else:
         min_val = INF
         for via, v in neighbours:
-            next_move_num = move_number + 1
-            next_turn = True
-            if made_square(v.board, via) is not None:
-                next_move_num = move_number + 2
-                next_turn = False
-
-            _, val = alpha_beta_impl((v.board, None, next_move_num),
+            next_turn = (made_square(v.board, via) is None)
+            _, val = alpha_beta_impl(v.state(),
                                      current_depth - 1,
                                      alpha,
                                      beta,
                                      heuristic,
                                      next_turn,
                                      sort)
+
             if min_val > val:
                 min_val = val
                 move = via
