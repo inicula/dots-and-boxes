@@ -573,7 +573,6 @@ def main(argv):
                    wait_for_move[player_idx].heuristic((board, rectangles, move_number)))
         fprint("")
 
-
         # Don't highlight move from previous turn
         if previous_move is not None:
             pw, pi, pj = previous_move
