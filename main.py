@@ -29,8 +29,6 @@ WIDTH      = 800
 HEIGHT     = 600
 RADIUS     = 20
 GAP        = 120
-OFFSET_X   = RADIUS
-OFFSET_Y   = RADIUS
 RECT_WIDTH = 15
 
 # search parameters
@@ -44,6 +42,8 @@ SIDE = 1
 # board config
 N = 4
 M = 5
+OFFSET_X = (WIDTH  - (GAP * (M - 1))) / 2
+OFFSET_Y = (HEIGHT - (GAP * (N - 1))) / 2
 
 # misc
 INF               = sys.maxsize
@@ -227,7 +227,6 @@ def make_triangle_figure(i, j, color):
 
     return [(p1, p2, p3), color]
 
-
 def made_square(board, via):
     w, i, j = via
     res = []
@@ -373,7 +372,6 @@ def minimax(state, heuristic, max_depth):
     idx = move_number % 2
 
     return minimax_impl(state, max_depth, heuristic, GAIN_VALS[idx] > 0)
-
 
 def minimax_impl(state, current_depth, heuristic, maximizing=True):
     board, _, move_number = state
