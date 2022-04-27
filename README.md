@@ -4,6 +4,7 @@
 $ python3 main.py --help
 
 USAGE: python3 main.py [OPTIONS]
+       pypy3 main.py --non-interactive [OPTIONS]
 
 OPTIONS:
 --non-interactive                                run in non-interactive mode (no pygame elements)
