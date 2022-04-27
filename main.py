@@ -52,6 +52,9 @@ INF               = sys.maxsize
 discovered_nodes  = 0
 non_interactive   = False
 stats             = []
+made_n_moves      = [0, 0]
+g_start_time      = time.time()
+g_end_time        = time.time()
 
 def fprint(fmt, *args):
     print(fmt.format(*args))
@@ -381,17 +384,25 @@ class Game_stats:
               statistics.median(discovered))
 
 def print_end_info():
-    fprint("GAME ENDED!\n\nPlayer 1:")
+    fprint("GAME ENDED!\nDuration: {:.2f} seconds", g_end_time - g_start_time)
+    fprint("Player 1 made {} moves", made_n_moves[1])
+    fprint("Player 2 made {} moves", made_n_moves[0])
+
+    fprint("\nPlayer 1:")
     stats[1].print()
+
     fprint("\nPlayer 2:")
     stats[0].print()
 
 def user_move(state):
+    global g_end_time
+
     board, rectangles, _ = state
 
     while True:
         event = pygame.event.wait(1)
         if event.type == pygame.QUIT:
+            g_end_time = time.time()
             print_end_info()
             pygame.quit()
             sys.exit()
@@ -546,6 +557,9 @@ def main(argv):
     global discovered_nodes
     global non_interactive
     global stats
+    global made_n_moves
+    global g_start_time
+    global g_end_time
 
     # Tables for move methods and heuristics
     search_methods = {
@@ -686,8 +700,10 @@ def main(argv):
     previous_figure_idx = None
     previous_move = None
     move_number = 1
+    g_start_time = time.time()
     while True:
         player_idx = move_number % 2
+        made_n_moves[player_idx] += 1
 
         # Clean up from previous move
         discovered_nodes = 0
@@ -741,6 +757,7 @@ def main(argv):
 
         # Check if game has ended
         if game_ended(board):
+            g_end_time = time.time()
             break
 
         # Prepare for next iteration
