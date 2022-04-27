@@ -27,8 +27,8 @@ PLAYER_COLORS = [RED, BLUE]
 PLAYER_NAMES  = ["RED", "BLUE"]
 
 # Dimensions
-WIDTH      = 800
-HEIGHT     = 600
+WIDTH      = 960
+HEIGHT     = 1080
 RADIUS     = 20
 GAP        = 120
 RECT_WIDTH = 15
@@ -42,8 +42,8 @@ DOWN = 0
 SIDE = 1
 
 # Board config
-N = 4
-M = 5
+N = 5
+M = 6
 OFFSET_X = (WIDTH  - (GAP * (M - 1))) / 2
 OFFSET_Y = (HEIGHT - (GAP * (N - 1))) / 2
 
