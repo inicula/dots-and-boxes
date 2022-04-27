@@ -671,6 +671,10 @@ def main(argv):
                     players[idx] = Player(search_methods[argv[i + 1]],
                                           heuristics[argv[i + 2]],
                                           int(argv[i + 3]))
+
+                    if int(argv[i + 3]) < 1:
+                        raise Exception('')
+
                     i += 3
 
             if argv[i] == "--print-board":
