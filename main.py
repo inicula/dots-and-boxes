@@ -1,4 +1,5 @@
 import sys
+import statistics
 import random
 import time
 from copy import deepcopy
@@ -48,6 +49,7 @@ OFFSET_Y = (HEIGHT - (GAP * (N - 1))) / 2
 INF               = sys.maxsize
 discovered_nodes  = 0
 non_interactive   = False
+stats             = []
 
 def fprint(fmt, *args):
     print(fmt.format(*args))
@@ -349,12 +351,46 @@ class Node:
         discovered_nodes += len(res)
         return res
 
+class Game_stats:
+    def __init__(self, player):
+        self.player = player
+        self.thinking_time = []
+        self.discovered = []
+
+    def print(self):
+        thinking_time = self.thinking_time
+        discovered = self.discovered
+
+        thinking_time = sorted(thinking_time)
+        fprint("Thinking time:")
+        fprint("min: {:.3f}\nmax: {:.3f}\naverage: {:.3f}\nmedian: {:.3f}",
+              min(thinking_time),
+              max(thinking_time),
+              statistics.mean(thinking_time),
+              statistics.median(thinking_time))
+
+        if is_human(self.player):
+            return
+        print("\nDiscovered nodes:")
+        fprint("min: {}\nmax: {}\naverage: {}\nmedian: {}",
+              min(discovered),
+              max(discovered),
+              statistics.mean(discovered),
+              statistics.median(discovered))
+
+def print_end_info():
+    fprint("GAME ENDED!\n\nPlayer 1:")
+    stats[1].print()
+    fprint("\nPlayer 2:")
+    stats[0].print()
+
 def user_move(state):
     board, rectangles, _ = state
 
     while True:
         event = pygame.event.wait(1)
         if event.type == pygame.QUIT:
+            print_end_info()
             pygame.quit()
             sys.exit()
 
@@ -507,6 +543,7 @@ def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=Tru
 def main(argv):
     global discovered_nodes
     global non_interactive
+    global stats
 
     # Tables for move methods and heuristics
     search_methods = {
@@ -637,6 +674,12 @@ def main(argv):
     draw(rectangles, figures, screen)
     draw(rectangles, figures, screen)
 
+    # Table for game statistics
+    stats = [
+        Game_stats(players[0]),
+        Game_stats(players[1])
+    ]
+
     # Start the main loop
     previous_figure_idx = None
     previous_move = None
@@ -651,6 +694,10 @@ def main(argv):
         start_time = time.time()
         (w, i, j), _ = players[player_idx]((board, rectangles, move_number))
         duration = time.time() - start_time
+
+        # Add to game stats
+        stats[player_idx].thinking_time.append(duration)
+        stats[player_idx].discovered.append(discovered_nodes)
 
         # Put the move on the board
         board[w][i][j] = move_number
@@ -702,10 +749,13 @@ def main(argv):
 
         if (wait_dur is not None) and (not is_human(players[move_number % 2])):
             time.sleep(wait_dur)
-    
+
+    # Print game stats
+    print_end_info()
+
     # Print info at the end of the game
     fscore = score(board)
-    fprint("Final score: {}", fscore)
+    fprint("\nFinal score: {}", fscore)
     if fscore == 0:
         fprint("GAME ENDED IN A DRAW")
     else:
