@@ -1,3 +1,5 @@
+# README.md: https://github.com/niculaionut/dots-and-boxes
+
 import sys
 import statistics
 import random
