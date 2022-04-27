@@ -7,7 +7,6 @@ import time
 from copy import deepcopy
 from os import environ
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = '1'
-import pygame
 
 # Colors
 THEMES = [
@@ -64,7 +63,8 @@ def fprinterr(fmt, *args):
     print(fmt.format(*args), file=sys.stderr)
 
 def print_help():
-    fprint("USAGE: python3 main.py [OPTIONS]\n")
+    fprint("USAGE: python3 main.py [OPTIONS]")
+    fprint("       pypy3 main.py --non-interactive [OPTIONS]\n")
 
     fprint("OPTIONS:")
     fprint("{:<48} {}", "--non-interactive", "run in non-interactive mode (no pygame elements)")
@@ -109,11 +109,19 @@ def print_help():
     fprint("\nExample #5 (human vs. alphabeta, alphabeta takes first move):")
     fprint("python3 main.py --swap")
 
+    fprint("\nExample #6 (use PyPy when in non-interactive mode for faster execution):")
+    fprint("pypy3 main.py --p1 alphabeta_sorted v3 5 --p2 alphabeta v3 5 --non-interactive")
+
 def empty_board():
     # Generate the initial board/game state
 
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
              [[0 for _ in range(M - 1)] for _ in range(N)])
+
+    if non_interactive:
+        return (board, [])
+    else:
+        import pygame
 
     rectangles = ([[] for _ in range(N - 1)],
                   [[] for _ in range(N)])
@@ -279,6 +287,8 @@ def made_square(board, via):
 def draw(rectangles, figures, screen):
     if non_interactive:
         return
+    else:
+        import pygame
 
     screen.fill(BG_COLOR)
 
@@ -422,6 +432,7 @@ def print_end_info():
 def user_move(state):
     # Get the user's next move
 
+    import pygame
     global g_end_time
 
     board, rectangles, _ = state
@@ -692,6 +703,7 @@ def main(argv):
     # Inits
     screen = None
     if not non_interactive:
+        import pygame
         pygame.init()
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Nicula Ionut / Dots & Boxes")
@@ -759,7 +771,8 @@ def main(argv):
 
         # Put the move on the board
         board[w][i][j] = move_number
-        rectangles[w][i][j][1] = PLAYER_COLORS[player_idx]
+        if not non_interactive:
+            rectangles[w][i][j][1] = PLAYER_COLORS[player_idx]
 
         # Check if the new move created squares
         sq = made_square(board, (w, i, j))
@@ -795,7 +808,8 @@ def main(argv):
         # Don't highlight move from previous turn
         if previous_move is not None:
             pw, pi, pj = previous_move
-            rectangles[pw][pi][pj][1] = FG_COLOR
+            if not non_interactive:
+                rectangles[pw][pi][pj][1] = FG_COLOR
         if previous_figure_idx is not None:
             for idx in previous_figure_idx:
                 figures[idx][1] = FG_COLOR
@@ -834,7 +848,11 @@ def main(argv):
         fprint("{} WON!", PLAYER_NAMES[fscore > 0])
 
     # Wait for manual user exit
-    while not non_interactive:
+    if non_interactive:
+        return
+
+    import pygame
+    while True:
         event = pygame.event.wait(1)
         if event.type == pygame.QUIT:
             pygame.quit()

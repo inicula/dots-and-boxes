@@ -47,4 +47,7 @@ python3 main.py --p1 alphabeta v2 4 --p2 minimax v3 3
 
 Example #5 (human vs. alphabeta, alphabeta takes first move):
 python3 main.py --swap
+
+Example #6 (use PyPy when in non-interactive mode for faster execution)
+pypy3 main.py --p1 alphabeta_sorted v3 5 --p2 alphabeta v3 5 --non-interactive
 ```
