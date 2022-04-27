@@ -12,6 +12,7 @@ OPTIONS:
 --difficulty <type>                              choose the game difficulty (maximum search depth)
 --p1 <player-type> [<heuristic> <max-depth>]     create the first player with the given parameters
 --p2 <player-type> [<heuristic> <max-depth>]     create the second player with the given parameters
+--print-board                                    print board configuration to stdout after each move
 --help                                           print information about usage and options
 
 PLAYER TYPES:

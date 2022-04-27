@@ -6,7 +6,7 @@ from os import environ
 environ["PYGAME_HIDE_SUPPORT_PROMPT"] = '1'
 import pygame
 
-# colors
+# Colors
 THEMES = [
     ((255, 255, 255),
      (0,   0,   0  ),
@@ -23,28 +23,28 @@ BG_COLOR, FG_COLOR, RED, BLUE, GRAY = THEMES[0]
 PLAYER_COLORS = [RED, BLUE]
 PLAYER_NAMES  = ["RED", "BLUE"]
 
-# dimensions
+# Dimensions
 WIDTH      = 800
 HEIGHT     = 600
 RADIUS     = 20
 GAP        = 120
 RECT_WIDTH = 15
 
-# search parameters
+# Search parameters
 DEFAULT_MAX_DEPTH = 3
 GAIN_VALS         = [-1, 1]
 
-# enums
+# Enums
 DOWN = 0
 SIDE = 1
 
-# board config
+# Board config
 N = 4
 M = 5
 OFFSET_X = (WIDTH  - (GAP * (M - 1))) / 2
 OFFSET_Y = (HEIGHT - (GAP * (N - 1))) / 2
 
-# misc
+# Misc
 INF               = sys.maxsize
 discovered_nodes  = 0
 non_interactive   = False
@@ -65,6 +65,7 @@ def print_help():
     fprint("{:<48} {}", "--difficulty <type>", "choose the game difficulty (maximum search depth)")
     fprint("{:<48} {}", "--p1 <player-type> [<heuristic> <max-depth>]", "create the first player with the given parameters")
     fprint("{:<48} {}", "--p2 <player-type> [<heuristic> <max-depth>]", "create the second player with the given parameters")
+    fprint("{:<48} {}", "--print-board", "print board configuration to stdout after each move")
     fprint("{:<48} {}", "--help", "print information about usage and options")
 
     fprint("\nPLAYER TYPES:")
@@ -139,6 +140,9 @@ def is_square(board, i, j):
     return edge_sum(board, i, j) == 4
 
 def square_owner(board, i, j):
+    # The owner of a complete square is the player that made the most recent move
+    # accross one of the square's segments
+
     return max(square_edges(board, i, j)) % 2
 
 def remaining_squares(board):
@@ -256,25 +260,25 @@ def draw(rectangles, figures, screen):
 
     screen.fill(BG_COLOR)
 
-    # draw the circles
+    # Draw the circles
     for i in range(N):
         for j in range(M):
             pos = (OFFSET_X + GAP * j, OFFSET_Y + GAP * i)
             pygame.draw.circle(screen, FG_COLOR, pos, RADIUS)
 
-    # draw the down-edges
+    # Draw the down-edges
     for i in range(N - 1):
         for j in range(M):
             rect, color = rectangles[DOWN][i][j]
             pygame.draw.rect(screen, color, rect)
 
-    # draw the side-edges
+    # Draw the side-edges
     for i in range(N):
         for j in range(M - 1):
             rect, color = rectangles[SIDE][i][j]
             pygame.draw.rect(screen, color, rect)
 
-    # draw the players' figures
+    # Draw the players' figures
     for points, color in figures:
         if len(points) == 4:
             pygame.draw.line(screen, color, points[0], points[1], 10)
@@ -283,6 +287,11 @@ def draw(rectangles, figures, screen):
             pygame.draw.polygon(screen, color, points)
 
     pygame.display.update()
+
+def board_to_str(board):
+    fmt = "Board configuration:\nDown edges matrix:\n{}\n\nSide edges matrix:\n{}"
+    return fmt.format("\n".join(map(str, board[DOWN])),
+                      "\n".join(map(str, board[SIDE])))
 
 class Player:
     def __init__(self, method, heuristic=None, max_depth=None):
@@ -312,7 +321,7 @@ class Node:
         move_number = self.current_move
         res = []
         increments = [1, 2]
-        # neighbours with new down/side edges
+        # Neighbours with new down/side edges
         for way in [DOWN, SIDE]:
             for i in range(N - (not way)):
                 for j in range(M - way):
@@ -334,7 +343,7 @@ class Node:
                         Node(new_board, move_number + increments[made_sq], made_sq)
                     ))
 
-        # avoid deterministic Computer vs. Computer matches
+        # Avoid deterministic Computer vs. Computer matches
         random.shuffle(res)
 
         discovered_nodes += len(res)
@@ -499,7 +508,7 @@ def main(argv):
     global discovered_nodes
     global non_interactive
 
-    # tables for move methods and heuristics
+    # Tables for move methods and heuristics
     search_methods = {
         "alphabeta"        : alpha_beta,
         "alphabeta_sorted" : alpha_beta_sorted,
@@ -519,13 +528,13 @@ def main(argv):
         "hard"   : 5
     }
 
-    # default players
+    # Default players
     players = [
         Player(alpha_beta, heuristic_v3, 3),
         Player(user_move)
     ]
 
-    # parse cli args
+    # Parse cli args
     argc = len(argv)
     if argc >= 2 and argv[1] == "--help":
         print_help()
@@ -533,6 +542,7 @@ def main(argv):
 
     wait_dur = None
     swap_players = False
+    print_board = False
     try:
         manual_player_setting = False
         difficulty_setting = False
@@ -571,6 +581,9 @@ def main(argv):
                                           int(argv[i + 3]))
                     i += 3
 
+            if argv[i] == "--print-board":
+                print_board = True
+
             i += 1
 
         if manual_player_setting and difficulty_setting:
@@ -583,20 +596,20 @@ def main(argv):
     if swap_players:
         players.reverse()
 
-    # inits
+    # Inits
     screen = None
     if not non_interactive:
         pygame.init()
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Nicula Ionut / Dots & Boxes")
 
-    # table for making player figures
+    # Table for making player figures
     make_player_figure = [
         make_triangle_figure,
         make_x_figure
     ]
 
-    # no user_move when non-interactive
+    # No user_move when non-interactive
     if non_interactive:
         m1 = players[0].method
         m2 = players[1].method
@@ -604,34 +617,46 @@ def main(argv):
             fprinterr("error: user_move not defined in non-interactive mode")
             exit(1)
 
-    # make empty board with free rectangles
+    # Make empty board with free rectangles
+    #
+    # If `board[DOWN][i][j]` is non-zero, the position (i, j) is connected
+    # to (i + 1, j)
+    #
+    # If `board[SIDE][i][j]` is non-zero, the position (i, j) is connected
+    # to (i, j + 1)
+    #
+    # Elements in the `board` matrix are move numbers (so the program can
+    # keep track of which player made which move)
+    #
+    # The first player always has move numbers that are odd, and the second
+    # player always has move numbers that are even
     board, rectangles = empty_board()
     figures = []
 
-    # draw twice (missing desktop environment?)
+    # Draw twice (missing desktop environment?)
     draw(rectangles, figures, screen)
     draw(rectangles, figures, screen)
 
-    # start the main loop
+    # Start the main loop
     previous_figure_idx = None
     previous_move = None
     move_number = 1
     while not game_ended(board):
         player_idx = move_number % 2
 
-        # clean up from previous move
+        # Clean up from previous move
         discovered_nodes = 0
 
-        # wait for the player's next move
+        # Wait for the player's next move
         start_time = time.time()
         (w, i, j), _ = players[player_idx]((board, rectangles, move_number))
         duration = time.time() - start_time
 
-        # put the move on the board
+        # Put the move on the board
         board[w][i][j] = move_number
         rectangles[w][i][j][1] = PLAYER_COLORS[player_idx]
 
-        # check if the new move created squares
+        # Check if the new move created squares
         sq = made_square(board, (w, i, j))
         new_figures_idx = []
         make_figure = make_player_figure[player_idx]
@@ -650,6 +675,8 @@ def main(argv):
         if players[player_idx].heuristic is not None:
             fprint("Estimated score: {}",
                    players[player_idx].heuristic((board, rectangles, move_number)))
+        if print_board:
+            fprint("{}", board_to_str(board))
         fprint("")
 
         # Don't highlight move from previous turn
@@ -664,6 +691,7 @@ def main(argv):
         draw(rectangles, figures, screen)
 
         # Prepare for next iteration
+        # Skip opponent move if the most recent segment scored any points
         if sq is None:
             move_number += 1
         else:
