@@ -48,7 +48,8 @@ OFFSET_X = (WIDTH  - (GAP * (M - 1))) / 2
 OFFSET_Y = (HEIGHT - (GAP * (N - 1))) / 2
 
 # Misc
-INF               = sys.maxsize
+INF               = float('inf')
+BIGVAL            = sys.maxsize / 4
 discovered_nodes  = 0
 non_interactive   = False
 stats             = []
@@ -200,18 +201,15 @@ def heuristic_v2(state):
     return partial_score + score(board)
 
 def heuristic_v3(state):
-    board, _, move_number = state
-    player_idx = move_number % 2
+    board, _, _ = state
 
     s = score(board)
     rem = remaining_squares(board)
 
-    if GAIN_VALS[player_idx] > 0:
-        if s + rem < 0:
-            return -INF + 1
-    else:
-        if s - rem > 0:
-            return INF - 1
+    if s + rem < 0:
+        return -BIGVAL
+    if s - rem > 0:
+        return BIGVAL
 
     return heuristic_v2(state)
 
