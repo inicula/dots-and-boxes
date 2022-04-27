@@ -56,9 +56,9 @@ def fprinterr(fmt, *args):
     print(fmt.format(*args), file=sys.stderr)
 
 def print_help():
-    fprint("Usage: python3 main.py [OPTIONS]\n")
+    fprint("USAGE: python3 main.py [OPTIONS]\n")
 
-    fprint("Options:")
+    fprint("OPTIONS:")
     fprint("{:<48} {}", "--non-interactive", "run in non-interactive mode (no pygame elements)")
     fprint("{:<48} {}", "--wait-between-moves <seconds>", "wait a number of seconds between moves")
     fprint("{:<48} {}", "--swap", "swap the two players before starting the game")
@@ -67,30 +67,36 @@ def print_help():
     fprint("{:<48} {}", "--p2 <player-type> [<heuristic> <max-depth>]", "create the second player with the given parameters")
     fprint("{:<48} {}", "--help", "print information about usage and options")
 
-    fprint("\nPlayer types:")
+    fprint("\nPLAYER TYPES:")
     fprint("{:<20} {}", "human", "take input from the user")
     fprint("{:<20} {}", "alphabeta", "search with alpha beta pruning")
     fprint("{:<20} {}", "alphabeta_sorted", "sort the nodes according to the heuristic before alpha beta pruning")
     fprint("{:<20} {}", "minimax", "search with minimax")
 
-    fprint("\nHeuristics:")
+    fprint("\nHEURISTICS:")
     fprint("{:<6} {}", "v1", "same as the current score on the board")
     fprint("{:<6} {}", "v2", "add the number of almost-complete squares to the player's score")
     fprint("{:<6} {}", "v3", "-inf/+inf if the player can't win with all of the remainig squares, otherwise same as v2")
 
-    fprint("\nDifficulties:")
+    fprint("\nDIFFICULTIES:")
     fprint("{:<10} {}", "easy", "maximum depth is 2")
     fprint("{:<10} {}", "medium", "maximum depth is 3")
     fprint("{:<10} {}", "hard", "maximum depth is 5")
 
-    fprint("\nExample #1 (start human vs. human game):")
+    fprint("\nExample #1 (start default game - human vs. alphabeta, heuristic 2, max depth 3):")
+    fprint("python3 main.py")
+
+    fprint("\nExample #2 (start human vs. human game):")
     fprint("python3 main.py --p1 human --p2 human")
 
-    fprint("\nExample #2 (start human vs. alpha beta, heuristic 1, max depth 3):")
+    fprint("\nExample #3 (start human vs. alpha beta, heuristic 1, max depth 3):")
     fprint("python3 main.py --p1 human --p2 alphabeta v1 3 --wait-between-moves 1")
 
-    fprint("\nExample #3 (alpha beta, heuristic 2, max depth 4 vs. minimax, heuristic 3, max depth 3):")
+    fprint("\nExample #4 (alpha beta, heuristic 2, max depth 4 vs. minimax, heuristic 3, max depth 3):")
     fprint("python3 main.py --p1 alphabeta v2 4 --p2 minimax v3 3")
+
+    fprint("\nExample #5 (human vs. alphabeta, alphabeta takes first move):")
+    fprint("python3 main.py --swap")
 
 def empty_board():
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
