@@ -44,5 +44,4 @@ python3 main.py --p1 alphabeta v2 4 --p2 minimax v3 3
 
 Example #5 (human vs. alphabeta, alphabeta takes first move):
 python3 main.py --swap
-
 ```
