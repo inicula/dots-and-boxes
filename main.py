@@ -73,6 +73,8 @@ def print_help():
     fprint("{:<48} {}", "--p1 <player-type> [<heuristic> <max-depth>]", "create the first player with the given parameters")
     fprint("{:<48} {}", "--p2 <player-type> [<heuristic> <max-depth>]", "create the second player with the given parameters")
     fprint("{:<48} {}", "--print-board", "print board configuration to stdout after each move")
+    fprint("{:<48} {}", "--rows <number>", "specify the number of rows on the board (>= 2)")
+    fprint("{:<48} {}", "--columns <number>", "specify the number of columns on the board (>= 2)")
     fprint("{:<48} {}", "--help", "print information about usage and options")
 
     fprint("\nPLAYER TYPES:")
@@ -387,21 +389,24 @@ class Game_stats:
         discovered = self.discovered
 
         thinking_time = sorted(thinking_time)
-        fprint("Thinking time (seconds):")
-        fprint("min: {:.3f}\nmax: {:.3f}\naverage: {:.3f}\nmedian: {:.3f}",
-              min(thinking_time),
-              max(thinking_time),
-              statistics.mean(thinking_time),
-              statistics.median(thinking_time))
+        if len(thinking_time) > 0:
+            fprint("Thinking time (seconds):")
+            fprint("min: {:.3f}\nmax: {:.3f}\naverage: {:.3f}\nmedian: {:.3f}",
+                  min(thinking_time),
+                  max(thinking_time),
+                  statistics.mean(thinking_time),
+                  statistics.median(thinking_time))
 
         if is_human(self.player):
             return
-        print("\nDiscovered nodes:")
-        fprint("min: {}\nmax: {}\naverage: {:.1f}\nmedian: {:.1f}",
-              min(discovered),
-              max(discovered),
-              statistics.mean(discovered),
-              statistics.median(discovered))
+
+        if len(discovered) > 0:
+            print("\nDiscovered nodes:")
+            fprint("min: {}\nmax: {}\naverage: {:.1f}\nmedian: {:.1f}",
+                  min(discovered),
+                  max(discovered),
+                  statistics.mean(discovered),
+                  statistics.median(discovered))
 
 def print_end_info():
     # Print information at the end of the game
@@ -583,6 +588,8 @@ def main(argv):
     global made_n_moves
     global g_start_time
     global g_end_time
+    global N
+    global M
 
     # Tables for move methods and heuristics
     search_methods = {
@@ -660,10 +667,22 @@ def main(argv):
             if argv[i] == "--print-board":
                 print_board = True
 
+            if argv[i] == "--rows":
+                N = int(argv[i + 1])
+                i += 1
+
+            if argv[i] == "--columns":
+                M = int(argv[i + 1])
+                i += 1
+
             i += 1
 
         if manual_player_setting and difficulty_setting:
             raise Exception('')
+
+        if not (N >= 2 and M >= 2):
+            raise Exception('')
+
     except:
         fprinterr("Erorr in cli args.")
         fprinterr("Run with flag '--help' for usage details.")
