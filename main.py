@@ -292,7 +292,7 @@ class Player:
         return self.method(board, self.heuristic, self.max_depth)
 
 class Node:
-    def __init__(self, board, current_move=None, has_scored=None):
+    def __init__(self, board, current_move, has_scored=None):
         self.board = board
         self.current_move = current_move
         self.has_scored = has_scored
@@ -300,11 +300,11 @@ class Node:
     def state(self):
         return (self.board, None, self.current_move)
 
-    def neighbours(self, move_number):
+    def neighbours(self):
         global discovered_nodes
 
+        move_number = self.current_move
         res = []
-
         increments = [1, 2]
         # neighbours with new down/side edges
         for way in [DOWN, SIDE]:
@@ -373,12 +373,12 @@ def minimax(state, heuristic, max_depth):
 
 def minimax_impl(state, current_depth, heuristic, maximizing=True):
     board, _, move_number = state
-    src = Node(board)
+    src = Node(board, move_number)
 
     if current_depth == 0:
         return None, heuristic(state)
 
-    neighbours = src.neighbours(move_number)
+    neighbours = src.neighbours()
     if len(neighbours) == 0:
         return None, heuristic(state)
 
@@ -428,12 +428,12 @@ def alpha_beta_sorted(state, heuristic, max_depth):
 
 def alpha_beta_impl(state, current_depth, alpha, beta, heuristic, maximizing=True, sort=False):
     board, _, move_number = state
-    src = Node(board)
+    src = Node(board, move_number)
 
     if current_depth == 0:
         return None, heuristic(state)
 
-    neighbours = src.neighbours(move_number)
+    neighbours = src.neighbours()
     if len(neighbours) == 0:
         return None, heuristic(state)
 
