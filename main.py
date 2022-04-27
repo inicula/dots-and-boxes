@@ -773,13 +773,21 @@ def main(argv):
         # Print move information
         fprint("MOVE #{}:", move_number)
         fprint("Thinking time: {:.3f} seconds:", duration)
+
         if not is_human(players[player_idx]):
             fprint("Discovered nodes: {}", 1 + discovered_nodes)
+
         fprint("Player {} has made move: {}", PLAYER_NAMES[player_idx], (w,i,j))
         fprint("Score: {}", score(board))
+
         if players[player_idx].heuristic is not None:
-            fprint("Estimated score: {}",
-                   players[player_idx].heuristic((board, rectangles, move_number)))
+            estimated = players[player_idx].heuristic((board, None, move_number))
+            if estimated == BIGVAL:
+                estimated = float('inf')
+            elif estimated == -BIGVAL:
+                estimated = float('-inf')
+            fprint("Estimated score: {}", estimated)
+
         if print_board:
             fprint("{}", board_to_str(board))
         fprint("")
