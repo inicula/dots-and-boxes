@@ -362,7 +362,7 @@ class Game_stats:
         discovered = self.discovered
 
         thinking_time = sorted(thinking_time)
-        fprint("Thinking time:")
+        fprint("Thinking time (seconds):")
         fprint("min: {:.3f}\nmax: {:.3f}\naverage: {:.3f}\nmedian: {:.3f}",
               min(thinking_time),
               max(thinking_time),
@@ -372,7 +372,7 @@ class Game_stats:
         if is_human(self.player):
             return
         print("\nDiscovered nodes:")
-        fprint("min: {}\nmax: {}\naverage: {}\nmedian: {}",
+        fprint("min: {}\nmax: {}\naverage: {:.1f}\nmedian: {:.1f}",
               min(discovered),
               max(discovered),
               statistics.mean(discovered),
@@ -684,7 +684,7 @@ def main(argv):
     previous_figure_idx = None
     previous_move = None
     move_number = 1
-    while not game_ended(board):
+    while True:
         player_idx = move_number % 2
 
         # Clean up from previous move
@@ -737,6 +737,10 @@ def main(argv):
         # Draw the board with the new move
         draw(rectangles, figures, screen)
 
+        # Check if game has ended
+        if game_ended(board):
+            break
+
         # Prepare for next iteration
         # Skip opponent move if the most recent segment scored any points
         if sq is None:
@@ -744,6 +748,7 @@ def main(argv):
         else:
             fprint("MOVE #{}: skipped\n", move_number + 1)
             move_number += 2
+
         previous_move = (w, i, j)
         previous_figure_idx = new_figures_idx
 
