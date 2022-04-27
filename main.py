@@ -588,7 +588,7 @@ def main(argv):
     if not non_interactive:
         pygame.init()
         screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Dots & Boxes")
+        pygame.display.set_caption("Nicula Ionut / Dots & Boxes")
 
     # table for making player figures
     make_player_figure = [
