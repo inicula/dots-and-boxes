@@ -107,6 +107,8 @@ def print_help():
     fprint("python3 main.py --swap")
 
 def empty_board():
+    # Generate the initial board/game state
+
     board = ([[0 for _ in range(M)] for _ in range(N - 1)],
              [[0 for _ in range(M - 1)] for _ in range(N)])
 
@@ -132,6 +134,8 @@ def empty_board():
     return board, rectangles
 
 def square_edges(board, i, j):
+    # Get segments that form square at position (i, j) (starting with the upper-left point)
+
     return [board[DOWN][i][j], board[DOWN][i][j + 1], board[SIDE][i][j], board[SIDE][i + 1][j]]
 
 def edge_sum(board, i, j):
@@ -144,6 +148,8 @@ def edge_sum(board, i, j):
     return res
 
 def is_square(board, i, j):
+    # Check if a complete square starts at position (i, j) (upper left corner)
+
     return edge_sum(board, i, j) == 4
 
 def square_owner(board, i, j):
@@ -153,6 +159,8 @@ def square_owner(board, i, j):
     return max(square_edges(board, i, j)) % 2
 
 def remaining_squares(board):
+    # Get number of remaining squares on the board
+
     res = 0
     for i in range(N - 1):
         for j in range(M - 1):
@@ -161,6 +169,11 @@ def remaining_squares(board):
     return res
 
 def score(board):
+    # Calculate score
+    # Each owned square has value 1
+    # For Player 1, the value is added to the score
+    # For Player 2, the value is subtracted from the score
+
     res = 0
     for i in range(N - 1):
         for j in range(M - 1):
@@ -241,6 +254,8 @@ def make_triangle_figure(i, j, color):
     return [(p1, p2, p3), color]
 
 def made_square(board, via):
+    # Check if move `via` created squares on the board
+
     w, i, j = via
     res = []
 
@@ -296,6 +311,8 @@ def draw(rectangles, figures, screen):
     pygame.display.update()
 
 def board_to_str(board):
+    # Get string representation of the board
+
     fmt = "Board configuration:\nDown edges matrix:\n{}\n\nSide edges matrix:\n{}"
     return fmt.format("\n".join(map(str, board[DOWN])),
                       "\n".join(map(str, board[SIDE])))
@@ -323,11 +340,14 @@ class Node:
         return (self.board, None, self.current_move)
 
     def neighbours(self):
+        # Generate node neighbours
+
         global discovered_nodes
 
         move_number = self.current_move
         res = []
         increments = [1, 2]
+
         # Neighbours with new down/side edges
         for way in [DOWN, SIDE]:
             for i in range(N - (not way)):
@@ -384,6 +404,8 @@ class Game_stats:
               statistics.median(discovered))
 
 def print_end_info():
+    # Print information at the end of the game
+
     fprint("GAME ENDED!\nDuration: {:.2f} seconds", g_end_time - g_start_time)
     fprint("Player 1 made {} moves", made_n_moves[1])
     fprint("Player 2 made {} moves", made_n_moves[0])
@@ -395,10 +417,11 @@ def print_end_info():
     stats[0].print()
 
 def user_move(state):
+    # Get the user's next move
+
     global g_end_time
 
     board, rectangles, _ = state
-
     while True:
         event = pygame.event.wait(1)
         if event.type == pygame.QUIT:
